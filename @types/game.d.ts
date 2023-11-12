@@ -2,7 +2,7 @@ import * as io from 'socket.io';
 import { SocketPayload } from 'src/module.ts';
 
 interface ClientToServerEvents {
-    'module.#{MODULE.ID}#': (payload: SocketPayload) => void;
+    'module.pf2e-minions': (payload: SocketPayload) => void;
 }
 
 declare global {

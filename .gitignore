@@ -20,8 +20,8 @@ lerna-debug.log*
 
 # Dummy files for vite dev server
 /index.html
-/#{MODULE_NAME}#.css
-/#{MODULE_NAME}#.mjs
+/pf2e-minions.css
+/pf2e-minions.mjs
 /vendor.mjs
 
 # Foundry bundle

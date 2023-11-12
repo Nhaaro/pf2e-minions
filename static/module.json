@@ -1,6 +1,6 @@
 {
-  "id": "#{MODULE.ID}#",
-  "title": "#{MODULE.NAME}#",
+  "id": "pf2e-minions",
+  "title": "PF2e Minions",
   "description": "",
   "version": "#{VERSION}#",
   "library": "false",
@@ -30,8 +30,8 @@
     ],
     "requires": []
   },
-  "esmodules": ["#{MODULE.ID}#.mjs"],
-  "styles": ["#{MODULE.ID}#.css"],
+  "esmodules": ["pf2e-minions.mjs"],
+  "styles": ["pf2e-minions.css"],
   "languages": [
     {
       "lang": "en",
