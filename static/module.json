@@ -1,0 +1,53 @@
+{
+  "id": "#{MODULE.ID}#",
+  "title": "#{MODULE.NAME}#",
+  "description": "",
+  "version": "#{VERSION}#",
+  "library": "false",
+  "manifestPlusVersion": "1.2.0",
+  "socket": true,
+  "compatibility": {
+    "minimum": 11,
+    "verified": 11,
+    "maximum": 11
+  },
+  "authors": [
+    {
+      "name": "Nhaaro",
+      "url": "https://github.com/nhaaro",
+      "discord": "Nhaaro"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "compatibility": {
+          "minimum": "4.0.0"
+        },
+        "type": "system"
+      }
+    ],
+    "requires": []
+  },
+  "esmodules": ["#{MODULE.ID}#.mjs"],
+  "styles": ["#{MODULE.ID}#.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    },
+    {
+      "lang": "es",
+      "name": "Español",
+      "path": "languages/es.json"
+    }
+  ],
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
+  "license": "UNLICENSE",
+  "readme": "README.md",
+  "media": []
+}

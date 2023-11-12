@@ -1,0 +1,11 @@
+{
+  "dataPath": "/absolute/path/to/your/FoundryVTT/Data",
+  "module": {
+    "id": "dash-separated-id-registered-in-foundry",
+    "name": "Display title"
+  },
+  "system": {
+    "path": "/absolute/path/to/your/foundryvtt/game/system/dev/folder",
+    "name": "system id"
+  }
+}
