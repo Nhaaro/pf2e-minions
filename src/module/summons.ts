@@ -1,4 +1,5 @@
 import { CharacterSystemData } from '@actor/character/data.js';
+import { CreatureTrait } from '@actor/creature/index.js';
 import { ActorPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
@@ -24,7 +25,7 @@ type sourceData = {
 };
 type updates = {
     actor: {
-        system?: CharacterSystemData;
+        system?: DeepPartial<CharacterSystemData>;
         flags: foundry.documents.ActorFlags & {
             warpgate: {
                 control: {
@@ -63,14 +64,20 @@ Hooks.on('fs-preSummon', async (...args) => {
         return;
     }
 
-    updates.token.flags[MODULE_NAME] ??= {};
-    updates.token.flags[MODULE_NAME].master = master.id;
+    const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
+    tokenFlags.master = master.id;
 
     if (updates.token.sight) updates.token.sight.enabled = true;
 
-    if ('spellType' in item?.system) {
-        updates.actor.system?.traits.value.push('summoned');
-        updates.actor.system?.traits.value.push('minion');
+    const actorTraits = updates.actor.system?.traits?.value;
+    if (
+        actorTraits &&
+        !(['minion', 'eidolon'] as CreatureTrait[]).some(trait =>
+            actorTraits.includes(trait)
+        )
+    ) {
+        actorTraits.push('summoned');
+        actorTraits.push('minion');
     }
 });
 Hooks.on('fs-postSummon', async (...args) => {
