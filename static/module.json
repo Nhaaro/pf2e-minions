@@ -28,7 +28,24 @@
         "type": "system"
       }
     ],
-    "requires": []
+    "requires": [
+      {
+        "id": "pf2e-jb2a-macros",
+        "type": "module",
+        "manifest": "https://github.com/MrVauxs/pf2e-jb2a-macros/releases/latest/download/module.json",
+        "compatibility": {
+          "minimum": "2.16.9"
+        }
+      },
+      {
+        "id": "foundry-summons",
+        "type": "module",
+        "manifest": "https://github.com/MrVauxs/foundry-summons/releases/latest/download/module.json",
+        "compatibility": {
+          "minimum": "1.6.1"
+        }
+      }
+    ]
   },
   "esmodules": ["pf2e-minions.mjs"],
   "styles": ["pf2e-minions.css"],

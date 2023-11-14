@@ -3,6 +3,7 @@ import './styles/module.css';
 
 import { MODULE_NAME } from 'src/constants.ts';
 import { registerTemplates } from './scripts/register-templates.ts';
+import { registerHooks } from './module/index.ts';
 
 type Payload<Action extends string> = {
     action: Action;
@@ -16,6 +17,7 @@ export type SocketPayload = ActionRequest;
 Hooks.once('init', async function () {
     // Register stuff with the Foundry client
     registerTemplates();
+    registerHooks();
 });
 
 Hooks.once('ready', async function () {
