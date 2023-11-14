@@ -34,7 +34,19 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
-    "paths": {},
+    "paths": {
+      "@actor": ["types/system/src/module/actor/index.ts"],
+      "@actor/*": ["types/system/src/module/actor/*"],
+      "@item": ["types/system/src/module/item/index.ts"],
+      "@item/*": ["types/system/src/module/item/*"],
+      "@scene": ["types/system/src/module/scene/index.ts"],
+      "@scene/*": ["types/system/src/module/scene/*"],
+      "@system/*": ["types/system/src/module/system/*"],
+      "@module/*": ["types/system/src/module/*"],
+      "@scripts/*": ["types/system/src/scripts/*"],
+      "@util": ["types/system/src/util/index.ts"],
+      "@util/*": ["types/system/src/util/*"]
+    },
     "types": ["jquery", "node"],
     "typeRoots": ["node_modules/@types", "node_modules/handlebars"]
   },

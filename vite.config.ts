@@ -15,11 +15,7 @@ const [outDir] = (() => {
     const config = fs.readJSONSync(configPath, { throws: false });
     const outDir =
         config instanceof Object
-            ? path.join(
-                  config.dataPath,
-                  'modules',
-                  config.systemName ?? MODULE_NAME
-              )
+            ? path.join(config.dataPath, 'modules', config.systemName ?? MODULE_NAME)
             : path.join(__dirname, 'dist/');
     return [outDir] as const;
 })();
@@ -72,9 +68,7 @@ const config = defineConfig(({ command, mode }) => {
                 apply: 'build',
                 writeBundle: {
                     async handler() {
-                        fs.closeSync(
-                            fs.openSync(path.resolve(outDir, 'vendor.mjs'), 'w')
-                        );
+                        fs.closeSync(fs.openSync(path.resolve(outDir, 'vendor.mjs'), 'w'));
                     },
                 },
             }
@@ -83,8 +77,7 @@ const config = defineConfig(({ command, mode }) => {
 
     // Create dummy files for vite dev server
     if (command === 'serve') {
-        const message =
-            'This file is for a running vite dev server and is not copied to a build';
+        const message = 'This file is for a running vite dev server and is not copied to a build';
         fs.writeFileSync('./index.html', `<h1>${message}</h1>\n`);
         fs.writeFileSync(
             `./${MODULE_NAME}.css`,
@@ -105,13 +98,13 @@ const config = defineConfig(({ command, mode }) => {
         },
         resolve: {
             alias: {
-                '@actor': path.resolve(__dirname, 'types/src/module/actor'),
-                '@item': path.resolve(__dirname, 'types/src/module/item'),
-                '@module': path.resolve(__dirname, 'types/src/module'),
-                '@scene': path.resolve(__dirname, 'types/src/module/scene'),
-                '@scripts': path.resolve(__dirname, 'types/src/scripts'),
-                '@system': path.resolve(__dirname, 'types/src/module/system'),
-                '@util': path.resolve(__dirname, 'types/src/util'),
+                '@actor': path.resolve(__dirname, 'types/system/src/module/actor'),
+                '@item': path.resolve(__dirname, 'types/system/src/module/item'),
+                '@module': path.resolve(__dirname, 'types/system/src/module'),
+                '@scene': path.resolve(__dirname, 'types/system/src/module/scene'),
+                '@scripts': path.resolve(__dirname, 'types/system/src/scripts'),
+                '@system': path.resolve(__dirname, 'types/system/src/module/system'),
+                '@util': path.resolve(__dirname, 'types/system/src/util'),
             },
         },
         server: {
@@ -147,11 +140,8 @@ const config = defineConfig(({ command, mode }) => {
                     entryFileNames: `${MODULE_NAME}.mjs`,
                     manualChunks: {
                         vendor:
-                            buildMode === 'production' &&
-                            'dependencies' in packageJSON
-                                ? Object.keys(
-                                      packageJSON.dependencies as object
-                                  )
+                            buildMode === 'production' && 'dependencies' in packageJSON
+                                ? Object.keys(packageJSON.dependencies as object)
                                 : [],
                     },
                 },
