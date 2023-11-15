@@ -1,6 +1,6 @@
 import { CharacterSystemData } from '@actor/character/data.js';
 import { CreatureTrait } from '@actor/creature/index.js';
-import { ActorPF2e } from '@actor/index.js';
+import { ActorPF2e, CharacterPF2e, NPCPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
@@ -9,7 +9,7 @@ import { MODULE_NAME } from 'src/constants.ts';
 type location = { x: number; y: number };
 type sourceData = {
     amount: number;
-    creatureActor: unknown;
+    creatureActor: { docType: 'DocWrapper'; document: string };
     flags: {
         item?:
             | SpellPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>>
@@ -64,10 +64,22 @@ Hooks.on('fs-preSummon', async (...args) => {
         return;
     }
 
+    if (updates.token.sight) updates.token.sight.enabled = true;
+
     const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
     tokenFlags.master = master.id;
 
-    if (updates.token.sight) updates.token.sight.enabled = true;
+    const character = JSON.parse(sourceData.creatureActor.document) as
+        | (CharacterPF2e & { type: 'character' })
+        | (NPCPF2e & { type: 'npc' });
+    if (character.type === 'character' && character.class?.name === 'Eidolon')
+        tokenFlags.type = 'eidolon';
+
+    if (
+        'duration' in item.system &&
+        item.system.duration.value.includes('sustain')
+    )
+        tokenFlags.type = 'sustained';
 
     const actorTraits = updates.actor.system?.traits?.value;
     if (
