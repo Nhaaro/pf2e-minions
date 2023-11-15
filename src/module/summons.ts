@@ -47,20 +47,16 @@ Hooks.on('fs-preSummon', async (...args) => {
     };
 
     const item = sourceData?.flags?.item;
-    const master = (await fromUuid(
-        `Actor.${sourceData?.summonerTokenDocument?.actorId}`
-    )) as ActorPF2e<TokenDocumentPF2e<ScenePF2e>>;
+    const master = (await fromUuid(`Actor.${sourceData?.summonerTokenDocument?.actorId}`)) as ActorPF2e<
+        TokenDocumentPF2e<ScenePF2e>
+    >;
 
     if (!master) {
-        console.warn(
-            `${MODULE_NAME} | Minions can only be tracked with a master`
-        );
+        console.warn(`${MODULE_NAME} | Minions can only be tracked with a master`);
         return;
     }
     if (!item) {
-        console.warn(
-            `${MODULE_NAME} | Summons can only be tracked from spells or actions`
-        );
+        console.warn(`${MODULE_NAME} | Summons can only be tracked from spells or actions`);
         return;
     }
 
@@ -72,22 +68,12 @@ Hooks.on('fs-preSummon', async (...args) => {
     const character = JSON.parse(sourceData.creatureActor.document) as
         | (CharacterPF2e & { type: 'character' })
         | (NPCPF2e & { type: 'npc' });
-    if (character.type === 'character' && character.class?.name === 'Eidolon')
-        tokenFlags.type = 'eidolon';
+    if (character.type === 'character' && character.class?.name === 'Eidolon') tokenFlags.type = 'eidolon';
 
-    if (
-        'duration' in item.system &&
-        item.system.duration.value.includes('sustain')
-    )
-        tokenFlags.type = 'sustained';
+    if ('duration' in item.system && item.system.duration.value.includes('sustain')) tokenFlags.type = 'sustained';
 
     const actorTraits = updates.actor.system?.traits?.value;
-    if (
-        actorTraits &&
-        !(['minion', 'eidolon'] as CreatureTrait[]).some(trait =>
-            actorTraits.includes(trait)
-        )
-    ) {
+    if (actorTraits && !(['minion', 'eidolon'] as CreatureTrait[]).some(trait => actorTraits.includes(trait))) {
         actorTraits.push('summoned');
         actorTraits.push('minion');
     }

@@ -54,17 +54,9 @@ export default function handlebarsReload(): Plugin {
                     });
 
                     // Also copy template to `dist` to persist the change
-                    const distFile = path.resolve(
-                        config.build.outDir,
-                        path.relative(config.publicDir, file)
-                    );
+                    const distFile = path.resolve(config.build.outDir, path.relative(config.publicDir, file));
                     await fs.copy(file, distFile);
-                    logger.info(
-                        `Copied ${fileFromRoot} to ${distFile.replace(
-                            config.build.outDir,
-                            foundryBaseDir
-                        )}`
-                    );
+                    logger.info(`Copied ${fileFromRoot} to ${distFile.replace(config.build.outDir, foundryBaseDir)}`);
                 }
             });
         },

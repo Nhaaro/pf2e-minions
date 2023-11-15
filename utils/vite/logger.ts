@@ -34,10 +34,7 @@ export default class Logger implements vite.Logger {
     }
 
     warn(msg: string, options?: vite.LogOptions | undefined): void {
-        return this.logger.warn(
-            `${Logger.prefix(chalk.yellow)} ${msg}`,
-            options
-        );
+        return this.logger.warn(`${Logger.prefix(chalk.yellow)} ${msg}`, options);
     }
 
     error(msg: string, options?: vite.LogErrorOptions | undefined): void {
@@ -45,10 +42,7 @@ export default class Logger implements vite.Logger {
     }
 
     warnOnce(msg: string, options?: vite.LogOptions | undefined): void {
-        return this.logger.warnOnce(
-            `${Logger.prefix(chalk.yellow)} ${msg}`,
-            options
-        );
+        return this.logger.warnOnce(`${Logger.prefix(chalk.yellow)} ${msg}`, options);
     }
 
     clearScreen(type: vite.LogType): void {

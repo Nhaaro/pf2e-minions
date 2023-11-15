@@ -5,8 +5,7 @@ import chalk from 'chalk';
 const prefixBase = chalk.bold('[ChildProcess]');
 const prefix = (color = chalk.green) => `${color(prefixBase)}`;
 const logger = {
-    log: (message?: any, ...optionalParams: any[]) =>
-        console.log(`${prefix()} ${message}`, ...optionalParams),
+    log: (message?: any, ...optionalParams: any[]) => console.log(`${prefix()} ${message}`, ...optionalParams),
     info: (message?: any, ...optionalParams: any[]) =>
         console.info(`${prefix(chalk.white)} ${message}`, ...optionalParams),
     error: (message?: any, ...optionalParams: any[]) =>
@@ -66,9 +65,7 @@ export async function run(
     });
 
     child.on('close', function (code) {
-        const currentProcess = spawnedProcesses.findIndex(
-            p => p[0] === [command, ...args].join(' ')
-        );
+        const currentProcess = spawnedProcesses.findIndex(p => p[0] === [command, ...args].join(' '));
         if (spawnedProcesses.length < 2) console.log();
         opts.onClose?.(code);
         spawnedProcesses.splice(currentProcess, 1);

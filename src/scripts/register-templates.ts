@@ -14,10 +14,7 @@ export const TEMPLATES = {
 
 /** Register Handlebars template partials */
 export function registerTemplates(): void {
-    function* flattenObject(
-        obj: Record<string, unknown>,
-        path: string[] = []
-    ): Generator<string> {
+    function* flattenObject(obj: Record<string, unknown>, path: string[] = []): Generator<string> {
         for (const [key, value] of Object.entries(obj)) {
             const newPath = path.concat(key);
             if (typeof value === 'string') {

@@ -15,10 +15,10 @@ type Flatten<T extends object> = object extends T
                           ? Pick<T, K>
                           : Flatten<V> extends infer FV
                           ? {
-                                [P in keyof FV as `${Extract<
-                                    K,
+                                [P in keyof FV as `${Extract<K, string | number>}.${Extract<
+                                    P,
                                     string | number
-                                >}.${Extract<P, string | number>}`]: FV[P];
+                                >}`]: FV[P];
                             }
                           : never
                       : Pick<T, K>

@@ -10,17 +10,14 @@ registerSIGINT();
 const prefixBase = chalk.bold('[Setup]');
 const prefix = (color = chalk.blue) => `${color(prefixBase)}`;
 const logger = {
-    log: (message?: any, ...optionalParams: any[]) =>
-        console.log(`${prefix()} ${message}`, ...optionalParams),
+    log: (message?: any, ...optionalParams: any[]) => console.log(`${prefix()} ${message}`, ...optionalParams),
     info: (message?: any, ...optionalParams: any[]) =>
         console.info(`${prefix(chalk.white)} ${message}`, ...optionalParams),
     error: (message?: any, ...optionalParams: any[]) =>
         console.error(`${prefix(chalk.red)} ${message}`, ...optionalParams),
 };
 
-const config = (
-    await import('../foundryconfig.json', { assert: { type: 'json' } })
-).default;
+const config = (await import('../foundryconfig.json', { assert: { type: 'json' } })).default;
 const flattenedConfig = flatten(config);
 
 // Validate fields
@@ -28,11 +25,7 @@ for (const key in flattenedConfig) {
     switch (key as keyof typeof flattenedConfig) {
         case 'dataPath':
             if (!config.dataPath) {
-                logger.error(
-                    `No ${chalk.bold(key)} found in ${chalk.bold(
-                        'foundryconfig.json'
-                    )} make sure to add it`
-                );
+                logger.error(`No ${chalk.bold(key)} found in ${chalk.bold('foundryconfig.json')} make sure to add it`);
                 process.exit(1);
             }
             if (!(await fs.pathExists(config.dataPath))) {
@@ -81,16 +74,9 @@ for (const key in flattenedConfig) {
 
                         await Promise.all(
                             (
-                                await fs.readdir(
-                                    `${config.system.path}/static/lang`
-                                )
+                                await fs.readdir(`${config.system.path}/static/lang`)
                             ).map(file =>
-                                run([
-                                    'ln',
-                                    '-sf',
-                                    `${config.system.path}/static/lang/${file}`,
-                                    `dist/types/`,
-                                ])
+                                run(['ln', '-sf', `${config.system.path}/static/lang/${file}`, `dist/types/`])
                             )
                         );
                         await Promise.all([
@@ -99,18 +85,8 @@ for (const key in flattenedConfig) {
                             run(['rm', '-rf', `${pwd}/types/foundry`]),
                         ]);
                         await Promise.all([
-                            run([
-                                'ln',
-                                '-sf',
-                                `${config.system.path}/dist/types`,
-                                `${pwd}/types/system`,
-                            ]),
-                            run([
-                                'ln',
-                                '-sf',
-                                `${config.system.path}/types/foundry`,
-                                `${pwd}/types/foundry`,
-                            ]),
+                            run(['ln', '-sf', `${config.system.path}/dist/types`, `${pwd}/types/system`]),
+                            run(['ln', '-sf', `${config.system.path}/types/foundry`, `${pwd}/types/foundry`]),
                         ]);
 
                         process.chdir(pwd);
@@ -142,15 +118,10 @@ for (const key in flattenedConfig) {
                     const m = match.match(/#\{(.+?)\}#/i);
                     if (m) {
                         const tokenName = m[1];
-                        const replacement =
-                            flattenedConfig[
-                                tokenName.toLowerCase() as keyof typeof flattenedConfig
-                            ];
+                        const replacement = flattenedConfig[tokenName.toLowerCase() as keyof typeof flattenedConfig];
                         if (replacement)
                             logger.log(
-                                `Replacing tokens in ${chalk.green(
-                                    file
-                                )}: ${chalk.yellow(
+                                `Replacing tokens in ${chalk.green(file)}: ${chalk.yellow(
                                     `#{${chalk.bold(tokenName)}}#`
                                 )} -> ${chalk.cyan(replacement)}`
                             );

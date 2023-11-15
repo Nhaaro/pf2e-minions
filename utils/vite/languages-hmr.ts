@@ -21,10 +21,7 @@ export default function handlebarsReload(): Plugin {
 
         configResolved(config) {
             const logger = new Logger(config.logger);
-            const watchPath = path.resolve(
-                config.publicDir,
-                'languages/*.json'
-            );
+            const watchPath = path.resolve(config.publicDir, 'languages/*.json');
             watcher = chokidar.watch(watchPath);
 
             // Clean up base dir to determine file placement within Foundry
@@ -45,9 +42,7 @@ export default function handlebarsReload(): Plugin {
 
                     // Shortened relative path for display purposes
                     const fileFromRoot = path.relative(config.root, file);
-                    const lang = file
-                        .replace(`${config.publicDir}/languages/`, '')
-                        .replace('.json', '');
+                    const lang = file.replace(`${config.publicDir}/languages/`, '').replace('.json', '');
 
                     // Trigger hot reload within dev server/Foundry
                     const content = await fs.readFile(file, {
@@ -61,17 +56,9 @@ export default function handlebarsReload(): Plugin {
                     });
 
                     // Also copy template to `dist` to persist the change
-                    const distFile = path.resolve(
-                        config.build.outDir,
-                        path.relative(config.publicDir, file)
-                    );
+                    const distFile = path.resolve(config.build.outDir, path.relative(config.publicDir, file));
                     await fs.copy(file, distFile);
-                    logger.info(
-                        `Copied ${fileFromRoot} to ${distFile.replace(
-                            config.build.outDir,
-                            foundryBaseDir
-                        )}`
-                    );
+                    logger.info(`Copied ${fileFromRoot} to ${distFile.replace(config.build.outDir, foundryBaseDir)}`);
                 }
             });
         },

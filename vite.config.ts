@@ -23,12 +23,7 @@ const [outDir] = (() => {
 const config = defineConfig(({ command, mode }) => {
     const buildMode = mode === 'production' ? 'production' : 'development';
 
-    const plugins = [
-        checker({ typescript: true }),
-        tsconfigPaths(),
-        handlebarsHMR(),
-        languagesHMR(),
-    ];
+    const plugins = [checker({ typescript: true }), tsconfigPaths(), handlebarsHMR(), languagesHMR()];
 
     // Handle minification after build to allow for tree-shaking and whitespace minification
     // "Note the build.minify option does not minify whitespaces when using the 'es' format in lib mode, as it removes
@@ -79,14 +74,8 @@ const config = defineConfig(({ command, mode }) => {
     if (command === 'serve') {
         const message = 'This file is for a running vite dev server and is not copied to a build';
         fs.writeFileSync('./index.html', `<h1>${message}</h1>\n`);
-        fs.writeFileSync(
-            `./${MODULE_NAME}.css`,
-            `/** ${message} */\n\n@import "./src/styles/module.css"`
-        );
-        fs.writeFileSync(
-            `./${MODULE_NAME}.mjs`,
-            `/** ${message} */\n\nimport "./src/module.ts";\n`
-        );
+        fs.writeFileSync(`./${MODULE_NAME}.css`, `/** ${message} */\n\n@import "./src/styles/module.css"`);
+        fs.writeFileSync(`./${MODULE_NAME}.mjs`, `/** ${message} */\n\nimport "./src/module.ts";\n`);
         fs.writeFileSync('./vendor.mjs', `/** ${message} */\n`);
     }
 
