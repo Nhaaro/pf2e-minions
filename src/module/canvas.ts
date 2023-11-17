@@ -25,11 +25,16 @@ Hooks.on('deleteToken', async (...args) => {
     const master = (await fromUuid(`Actor.${document.flags[MODULE_NAME].master}`)) as ActorPF2e;
     if (master) {
         const minions = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        console.debug(`${MODULE_NAME} | Removing minion to master`, document.uuid, minions);
         master.setFlag(
             MODULE_NAME,
             'minions',
-            minions.filter(uuid => uuid != document.uuid)
+            minions
+                .filter(uuid => uuid != document.uuid)
+                .filter(uuid => {
+                    const [, scene, , id] = uuid.split('.');
+                    if (scene !== document.scene?.id) return true;
+                    return canvas.tokens.get(id);
+                })
         );
     }
     console.groupEnd();
