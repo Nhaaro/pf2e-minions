@@ -98,27 +98,3 @@ Hooks.on('fs-postSummon', async (...args) => {
         master.setFlag(MODULE_NAME, 'minions', [...minions, tokenDoc.uuid]);
     console.groupEnd();
 });
-
-Hooks.on('deleteToken', async (...args) => {
-    console.debug(`${MODULE_NAME} | deleteToken`, ...args);
-    const tokenDoc = args[0] as TokenDocumentPF2e<ScenePF2e>;
-
-    const masterUuid = tokenDoc.getFlag(MODULE_NAME, 'master') as string;
-    if (!masterUuid) {
-        console.warn(`${MODULE_NAME} | Summon with no master, skipping...`);
-        return;
-    }
-
-    const master = game.actors.get(masterUuid);
-    if (!master) {
-        ui.notifications.error(`${MODULE_NAME} | Invalid master`);
-        return;
-    }
-
-    const summons = (master.getFlag(MODULE_NAME, 'summons') as string[]) ?? [];
-    master.setFlag(
-        MODULE_NAME,
-        'summons',
-        summons.filter(uuid => uuid != tokenDoc.uuid)
-    );
-});

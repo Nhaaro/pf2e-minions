@@ -4,6 +4,8 @@ export const registerHooks = () => {
     console.debug(`${MODULE_NAME} | registerHooks`);
     import('./summons.ts');
     import('./familiar.ts');
+
+    import('./canvas.ts');
 };
 
 declare global {
