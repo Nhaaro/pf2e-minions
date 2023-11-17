@@ -45,7 +45,7 @@ export default function handlebarsReload(): Plugin {
                     const lang = file.replace(`${config.publicDir}/languages/`, '').replace('.json', '');
 
                     // Trigger hot reload within dev server/Foundry
-                    const content = await fs.readFile(file, {
+                    const content = await fs.readJSON(file, {
                         encoding: 'utf8',
                     });
                     logger.info(`Reload ${fileFromRoot} as ${foundryPath}`);
