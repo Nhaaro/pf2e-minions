@@ -76,25 +76,3 @@ Hooks.on('fs-preSummon', async (...args) => {
     }
     console.groupEnd();
 });
-Hooks.on('fs-postSummon', async (...args) => {
-    const [{ tokenDoc, updates }] = args as [
-        {
-            location: location;
-            tokenDoc: TokenDocumentPF2e;
-            updates: updates;
-            iteration: number;
-            sourceData: sourceData;
-            animated: boolean;
-        }
-    ];
-
-    if (!updates.token.flags[MODULE_NAME]) return;
-    console.group(`${MODULE_NAME} | fs-postSummon`, ...args);
-
-    const master = (await fromUuid(`Actor.${updates.token.flags[MODULE_NAME].master}`)) as ActorPF2e;
-    const minions = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-    console.debug(`${MODULE_NAME} | Cascading master changes`, tokenDoc.uuid, tokenDoc);
-    if (!minions.find(uuid => uuid === tokenDoc.uuid))
-        master.setFlag(MODULE_NAME, 'minions', [...minions, tokenDoc.uuid]);
-    console.groupEnd();
-});
