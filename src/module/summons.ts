@@ -1,5 +1,5 @@
-import { CharacterSystemData } from '@actor/character/data.js';
-import { CreatureTrait } from '@actor/creature/index.js';
+import { CreaturePF2e, CreatureTrait } from '@actor/creature/index.js';
+import { PrototypeTokenPF2e } from '@actor/data/base.js';
 import { ActorPF2e, CharacterPF2e, NPCPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
@@ -23,28 +23,22 @@ type sourceData = {
     updates: {};
     userId: string;
 };
-type updates = {
-    actor: {
-        system?: DeepPartial<CharacterSystemData>;
-        flags: foundry.documents.ActorFlags & {
-            warpgate: {
-                control: {
-                    actor: unknown;
-                    user: string;
-                };
-            };
-        };
-    };
-    token: DeepPartial<TokenDocumentPF2e> & { flags: DocumentFlags };
+type updates<Actor extends CreaturePF2e | NPCPF2e = CreaturePF2e | NPCPF2e> = {
+    actor: DeepPartial<Actor>;
+    token: DeepPartial<PrototypeTokenPF2e<Actor>> & { flags: DocumentFlags };
 };
 
 Hooks.on('fs-preSummon', async (...args) => {
-    console.debug(`${MODULE_NAME} | fs-preSummon`, ...args);
-    const { updates, sourceData } = args[0] as {
-        location: location;
-        updates: updates;
-        sourceData: sourceData;
-    };
+    const [{ updates, sourceData }] = args as [
+        {
+            location: location;
+            updates: updates;
+            sourceData: sourceData;
+        }
+    ];
+
+    if (!(sourceData.flags.item && sourceData.summonerTokenDocument)) return;
+    console.group(`${MODULE_NAME} | fs-preSummon`, ...args);
 
     const item = sourceData?.flags?.item;
     const master = (await fromUuid(`Actor.${sourceData?.summonerTokenDocument?.actorId}`)) as ActorPF2e<
@@ -53,16 +47,19 @@ Hooks.on('fs-preSummon', async (...args) => {
 
     if (!master) {
         console.warn(`${MODULE_NAME} | Minions can only be tracked with a master`);
+        console.groupEnd();
         return;
     }
     if (!item) {
         console.warn(`${MODULE_NAME} | Summons can only be tracked from spells or actions`);
+        console.groupEnd();
         return;
     }
 
     if (updates.token.sight) updates.token.sight.enabled = true;
 
     const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
+    console.debug(`${MODULE_NAME} | tokenFlags`, tokenFlags);
     tokenFlags.master = master.id;
 
     const character = JSON.parse(sourceData.creatureActor.document) as
@@ -77,32 +74,29 @@ Hooks.on('fs-preSummon', async (...args) => {
         actorTraits.push('summoned');
         actorTraits.push('minion');
     }
+    console.groupEnd();
 });
 Hooks.on('fs-postSummon', async (...args) => {
-    console.debug(`${MODULE_NAME} | fs-postSummon`, ...args);
-    const { tokenDoc } = args[0] as {
-        location: location;
-        tokenDoc: TokenDocumentPF2e;
-        updates: updates;
-        iteration: number;
-        sourceData: sourceData;
-        animated: boolean;
-    };
+    const [{ tokenDoc, updates }] = args as [
+        {
+            location: location;
+            tokenDoc: TokenDocumentPF2e;
+            updates: updates;
+            iteration: number;
+            sourceData: sourceData;
+            animated: boolean;
+        }
+    ];
 
-    const masterUuid = tokenDoc.getFlag(MODULE_NAME, 'master') as string;
-    if (!masterUuid) {
-        console.warn(`${MODULE_NAME} | Summon with no master, skipping...`);
-        return;
-    }
+    if (!updates.token.flags[MODULE_NAME]) return;
+    console.group(`${MODULE_NAME} | fs-postSummon`, ...args);
 
-    const master = game.actors.get(masterUuid);
-    if (!master) {
-        ui.notifications.error(`${MODULE_NAME} | Invalid master`);
-        return;
-    }
-
-    const summons = (master.getFlag(MODULE_NAME, 'summons') as string[]) ?? [];
-    master.setFlag(MODULE_NAME, 'summons', [...summons, tokenDoc.uuid]);
+    const master = (await fromUuid(`Actor.${updates.token.flags[MODULE_NAME].master}`)) as ActorPF2e;
+    const minions = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+    console.debug(`${MODULE_NAME} | Cascading master changes`, tokenDoc.uuid, tokenDoc);
+    if (!minions.find(uuid => uuid === tokenDoc.uuid))
+        master.setFlag(MODULE_NAME, 'minions', [...minions, tokenDoc.uuid]);
+    console.groupEnd();
 });
 
 Hooks.on('deleteToken', async (...args) => {
