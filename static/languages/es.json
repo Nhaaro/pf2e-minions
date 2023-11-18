@@ -1,5 +1,5 @@
 {
   "pf2e-minions": {
-    "hello": "hola"
+    "Minions": "Minions de {name}"
   }
 }

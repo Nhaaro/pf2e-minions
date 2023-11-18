@@ -1,5 +1,14 @@
 {
     "arrowParens": "avoid",
     "trailingComma": "es5",
-    "singleQuote": true
+    "singleQuote": true,
+
+    "overrides": [
+        {
+            "files": ["**/*.html", "**/*.hbs"],
+            "options": {
+                "singleQuote": false
+            }
+        }
+    ]
 }

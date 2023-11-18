@@ -6,6 +6,8 @@ export const registerHooks = () => {
     import('./familiar.ts');
 
     import('./canvas.ts');
+
+    import('./encounter.ts');
 };
 
 declare global {

@@ -1,0 +1,25 @@
+<ul class="participant-minions" data-tooltip-class="pf2e" data-tooltip-direction="LEFT">
+    {{#each minions as |minion|}}
+        <li data-minion-uuid="{{minion.uuid}}" data-master-id="{{minion.master}}" class="minion-row">
+            <div class="portrait-and-name">
+                <img class="avatar portrait" src="{{minion.img}}" style="transform: scale(1)" />
+
+                <div class="name-wrapper">
+                    <h4 class="minion-name">{{minion.name}}</h4>
+                    <span class="minion-type">{{minion.type}}</span>
+                </div>
+            </div>
+
+            <div class="actions-wrapper">
+                {{#if (eq minion.type "eidolon")}}
+                    <a class="command-minion-item" title="Act Together"><span class="action-glyph">1 - 3</span>Act</a>
+                {{else if (eq minion.type "sustained")}}
+                    <a class="command-minion-item" title="Sustain"><span class="action-glyph">1</span>Sustain</a>
+                    <a class="command-minion-item" title="Dismiss"><i class="fas fa-user-slash"></i>Dismiss</a>
+                {{else}}
+                    <a class="command-minion-item" title="Command"><span class="action-glyph">1</span>Command</a>
+                {{/if}}
+            </div>
+        </li>
+    {{/each}}
+</ul>

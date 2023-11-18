@@ -2,7 +2,7 @@ import { MODULE_NAME } from 'src/constants.ts';
 
 const moduleTemplates = {
     [MODULE_NAME]: {
-        // template: `modules/${MODULE_NAME}/templates/template.hbs`,
+        minions: `modules/${MODULE_NAME}/templates/minions.hbs`,
     },
 };
 const systemTemplates = {};
