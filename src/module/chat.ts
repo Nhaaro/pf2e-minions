@@ -1,8 +1,11 @@
+import { ActorPF2e } from '@actor/index.js';
+import { AbilityItemPF2e } from '@item/index.js';
 import { ChatMessagePF2e } from '@module/chat-message/document.js';
 import { CombatantPF2e } from '@module/encounter/combatant.js';
+import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
 import { MODULE_NAME } from 'src/constants.ts';
 import { TEMPLATES } from 'src/scripts/register-templates.ts';
-import { htmlClosest } from 'src/system/src/util/dom.ts';
+import { htmlClosest, sluggify } from 'src/system/src/util/index.ts';
 
 export async function createMinionsMessage(combatant: CombatantPF2e, uuids: string[]): Promise<Maybe<ChatMessage>> {
     if (!combatant.token?.actor) return null;
@@ -56,6 +59,8 @@ Hooks.on('renderChatMessage', async (...args) => {
         /** Select the minion token */
         element.querySelector<HTMLHeadingElement>('.minion-name')?.addEventListener('click', clickHandler);
         element.querySelector<HTMLHeadingElement>('.minion-name')?.addEventListener('dblclick', clickHandler);
+        /** Send action to chat */
+        element.querySelector<HTMLAnchorElement>('a')?.addEventListener('click', actionHandler);
     });
 
     async function hoverHandler(this: HTMLLIElement, nativeEvent: MouseEvent | PointerEvent) {
@@ -87,6 +92,52 @@ Hooks.on('renderChatMessage', async (...args) => {
         if (nativeEvent.type === 'dblclick') {
             const scale = Math.max(1, canvas.stage.scale.x);
             canvas.animatePan({ ...token.center, scale, duration: 1000 });
+        }
+    }
+
+    async function actionHandler(this: HTMLAnchorElement, nativeEvent: MouseEvent) {
+        const minionRow = htmlClosest(nativeEvent.target, '.minion-row');
+        if (!canvas.ready || !minionRow?.dataset.minionUuid || !minionRow.dataset.masterUuid) return;
+        const [, , , minionId] = minionRow.dataset.minionUuid.split('.');
+        const [, , , masterId] = minionRow.dataset.masterUuid.split('.');
+        const sourceId = this.dataset.sourceId!;
+
+        const minionToken = canvas.tokens.get(minionId);
+        const masterToken = canvas.tokens.get(masterId);
+        if (!masterToken?.actor || !masterToken?.isOwner) return;
+
+        let action = masterToken.actor.itemTypes.action.find(action => action.sourceId === sourceId);
+        if (action) {
+            action = action.clone({
+                img: minionToken?.document.texture.src,
+            });
+            action.toMessage();
+        } else {
+            action = ((await fromUuid(sourceId)) as AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e> | null>>)!;
+            action = action.clone({
+                img: minionToken?.document.texture.src,
+            });
+
+            const template = (TEMPLATES.pf2e.chat.card as unknown as Record<string, string>)[sluggify(action.type)];
+            const templateData = {
+                actor: masterToken.actor,
+                item: action,
+                data: await action?.getChatData(),
+            };
+            const chatData: Partial<foundry.documents.ChatMessageSource> = {
+                speaker: ChatMessage.getSpeaker({ token: masterToken.document, actor: masterToken.actor }),
+                flags: {
+                    pf2e: {
+                        origin: action.getOriginData(),
+                    },
+                },
+                type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+            };
+            chatData.content = await renderTemplate(template, templateData);
+            const isNPCEvent = !masterToken.actor?.hasPlayerOwner;
+            if (isNPCEvent) chatData.whisper = ChatMessage.getWhisperRecipients('GM').map(u => u.id);
+
+            ChatMessage.create(chatData);
         }
     }
 });
