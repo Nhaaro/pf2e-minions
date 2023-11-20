@@ -1,5 +1,20 @@
 {
   "pf2e-minions": {
-    "Minions": "{name}'s minions"
+    "Minions": "{name}'s minions",
+    "StatusEffects": "{name}'s conditions",
+    "Actions": {
+      "CommandAnAnimal": {
+        "Description": "<p>You issue an order to a companion.</p><p>Most companions know the @UUID[Compendium.pf2e.actionspf2e.Item.HYNhdaPtF1QmQbR3], @UUID[Compendium.pf2e.actionspf2e.Item.d5I6018Mci2SWokk], @UUID[Compendium.pf2e.actionspf2e.Item.BlAOM2X92SI6HMtJ], @UUID[Compendium.pf2e.actionspf2e.Item.OdIUybJ3ddfL7wzj], @UUID[Compendium.pf2e.actionspf2e.Item.Bcxarzksqt9ezrs6], and @UUID[Compendium.pf2e.actionspf2e.Item.VjxZFuUXrCU94MWR] basic actions.</p><hr /><p>Your companion gains 2 actions during your turn if you use the Command an Animal action to command it; this is in place of the usual effects of @UUID[Compendium.pf2e.actionspf2e.Item.q9nbyIF0PEBqMtYe], and you don't need to attempt a Nature check.</p>",
+        "Title": "Command {name}"
+      },
+      "ActTogether": {
+        "Description": "<p><strong>Frequency</strong> once per round</p>\n<p>You and your eidolon act as one. Either you or your eidolon takes an action or activity using the same number of actions as Act Together, and the other takes a single action.</p>\n<p>For example, if you spent 2 actions to Act Together, you could cast <em>@UUID[Compendium.pf2e.spells-srd.Item.y6rAdMK6EFlV6U0t]</em> (2 actions) and your eidolon could Strike (1 action), or your eidolon could use its Breath Weapon (2 actions) and you could Stride (1 action).</p>\n<p>This lets you each use separate exploration activities like @UUID[Compendium.pf2e.actionspf2e.Item.IE2nThCmoyhQA0Jn] as you travel.</p>",
+        "Title": "Act Together ({name})"
+      },
+      "SustainASpell": {
+        "Description": "<p><strong>Requirements</strong> You are not @UUID[Compendium.pf2e.conditionitems.Item.HL2l2VRSaQHu9lUw]</p>\n<hr />\n<p>The duration of {spellCompendium} continues until the end of your next turn. Sustaining {spellName} for more than {duration} ends it and makes you fatigued.</p>\n<hr /><p>Immediately when you finish Casting the Spell, the summoned creature uses its 2 actions for that turn. They are automatically banished if reduced to 0 Hit Points or if the spell that called them ends (such as being disrupted).</p>",
+        "Title": "Sustain {name}"
+      }
+    }
   }
 }

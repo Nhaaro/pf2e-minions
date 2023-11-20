@@ -1,6 +1,11 @@
 <ul class="participant-minions" data-tooltip-class="pf2e" data-tooltip-direction="LEFT">
     {{#each minions as |minion|}}
-        <li data-minion-uuid="{{minion.uuid}}" data-master-uuid="{{minion.master}}" class="minion-row">
+        <li
+            data-minion-uuid="{{minion.uuid}}"
+            data-master-uuid="{{minion.master}}"
+            data-item-uuid="{{minion.item}}"
+            class="minion-row"
+        >
             <div class="portrait-and-name">
                 <img class="avatar portrait" src="{{minion.img}}" style="transform: scale(1)" />
 

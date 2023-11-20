@@ -61,6 +61,7 @@ Hooks.on('fs-preSummon', async (...args) => {
     const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
     console.debug(`${MODULE_NAME} | tokenFlags`, tokenFlags);
     tokenFlags.master = master.id;
+    tokenFlags.item = item.sourceId;
 
     const character = JSON.parse(sourceData.creatureActor.document) as
         | (CharacterPF2e & { type: 'character' })

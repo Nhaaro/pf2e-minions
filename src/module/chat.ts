@@ -1,5 +1,5 @@
 import { ActorPF2e } from '@actor/index.js';
-import { AbilityItemPF2e } from '@item/index.js';
+import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { ChatMessagePF2e } from '@module/chat-message/document.js';
 import { CombatantPF2e } from '@module/encounter/combatant.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
@@ -25,6 +25,7 @@ export async function createMinionsMessage(combatant: CombatantPF2e, uuids: stri
                 type: minion.document.flags[MODULE_NAME].type,
                 uuid: uuid,
                 master: token.uuid,
+                item: minion.document.flags[MODULE_NAME].item,
             };
         })
     );
@@ -104,29 +105,54 @@ Hooks.on('renderChatMessage', async (...args) => {
 
         const minionToken = canvas.tokens.get(minionId);
         const masterToken = canvas.tokens.get(masterId);
+        const item = (await fromUuid<SpellPF2e | AbilityItemPF2e>(minionRow.dataset.itemUuid || ''));
         if (!masterToken?.actor || !masterToken?.isOwner) return;
+        if (!minionToken) {
+            console.error(`${MODULE_NAME} | No minion found`, minionRow.dataset);
+            return;
+        }
+
+        const actionOverrides = (action: AbilityItemPF2e) => {
+            const translation = `${MODULE_NAME}.Actions.${sluggify(action.name, { camel: 'bactrian' })}`;
+            return {
+                img: minionToken.document.texture.src,
+                flags,
+                name: game.i18n.format(`${translation}.Title`, { name: minionToken.name }),
+                system: {
+                    description: {
+                        value: game.i18n.format(`${translation}.Description`, {
+                            spellCompendium: item?.name && `@UUID[${item.sourceId}]` || 'that spell',
+                            spellName: item?.name || 'the spell',
+                            duration:
+                                (item && 'duration' in item.system &&
+                                    item.system.duration.value.includes('sustain') &&
+                                    item.system.duration.value.replace('sustained up to ', '')) ||
+                                '10 minute',
+                        }),
+                    },
+                },
+            }
+        }
+        const flags = { [MODULE_NAME]: { minionId, masterId, sourceId, type: 'command-card' } };
 
         let action = masterToken.actor.itemTypes.action.find(action => action.sourceId === sourceId);
         if (action) {
-            action = action.clone({
-                img: minionToken?.document.texture.src,
-            });
+            action = action.clone(actionOverrides(action));
             action.toMessage();
         } else {
-            action = ((await fromUuid(sourceId)) as AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e> | null>>)!;
-            action = action.clone({
-                img: minionToken?.document.texture.src,
-            });
+            action = ((await fromUuid<AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e> | null>>>(sourceId)))!;
+            action = action.clone(actionOverrides(action));
 
             const template = (TEMPLATES.pf2e.chat.card as unknown as Record<string, string>)[sluggify(action.type)];
             const templateData = {
                 actor: masterToken.actor,
                 item: action,
-                data: await action?.getChatData(),
+                data: await action.getChatData(),
             };
             const chatData: Partial<foundry.documents.ChatMessageSource> = {
                 speaker: ChatMessage.getSpeaker({ token: masterToken.document, actor: masterToken.actor }),
                 flags: {
+                    ...flags,
                     pf2e: {
                         origin: action.getOriginData(),
                     },
