@@ -61,16 +61,18 @@ Hooks.on('renderChatMessage', async (...args) => {
         element.querySelector<HTMLHeadingElement>('.minion-name')?.addEventListener('click', clickHandler);
         element.querySelector<HTMLHeadingElement>('.minion-name')?.addEventListener('dblclick', clickHandler);
         /** Send action to chat */
-        element.querySelector<HTMLAnchorElement>('a')?.addEventListener('click', nativeEvent =>
-            game.socket.emit(`module.${MODULE_NAME}`, {
+        element.querySelector<HTMLAnchorElement>('a')?.addEventListener('click', nativeEvent => {
+            const payload: ActionRequest = {
                 action: 'commandHandler',
                 nativeEvent: {
                     shiftKey: nativeEvent.shiftKey,
                 },
                 messageId: message.id,
                 minionUuid: element.dataset.minionUuid,
-            })
-        );
+            };
+            if (game.user.isGM) actionHandler(payload);
+            else game.socket.emit(`module.${MODULE_NAME}`, payload);
+        });
     });
 
     async function hoverHandler(this: HTMLLIElement, nativeEvent: MouseEvent | PointerEvent) {
