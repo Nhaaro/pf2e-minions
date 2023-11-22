@@ -1,11 +1,6 @@
-<ul class="participant-minions" data-tooltip-class="pf2e" data-tooltip-direction="LEFT">
+<ul class="combatant-minions" data-master-uuid="{{master}}">
     {{#each minions as |minion|}}
-        <li
-            data-minion-uuid="{{minion.uuid}}"
-            data-master-uuid="{{minion.master}}"
-            data-item-uuid="{{minion.item}}"
-            class="minion-row"
-        >
+        <li data-minion-uuid="{{minion.uuid}}" data-item-uuid="{{minion.item}}" class="minion-row">
             <div class="portrait-and-name">
                 <img class="avatar portrait" src="{{minion.img}}" style="transform: scale(1)" />
 
@@ -17,17 +12,17 @@
 
             <div class="actions-wrapper">
                 {{#if (eq minion.type "eidolon")}}
-                    <a data-source-id="Compendium.pf2e.actionspf2e.Item.2KV87ponbWXgGIhZ" title="Act Together">
+                    <a data-source-uuid="Compendium.pf2e.actionspf2e.Item.2KV87ponbWXgGIhZ" title="Act Together">
                         Act
                         <span class="action-glyph">1 - 3</span>
                     </a>
                 {{else if (eq minion.type "sustained")}}
-                    <a data-source-id="Compendium.pf2e.actionspf2e.Item.3f5DMFu8fPiqHpRg" title="Sustain">
+                    <a data-source-uuid="Compendium.pf2e.actionspf2e.Item.3f5DMFu8fPiqHpRg" title="Sustain">
                         Sustain
                         <span class="action-glyph">1</span>
                     </a>
                 {{else}}
-                    <a data-source-id="Compendium.pf2e.actionspf2e.Item.q9nbyIF0PEBqMtYe" title="Command">
+                    <a data-source-uuid="Compendium.pf2e.actionspf2e.Item.q9nbyIF0PEBqMtYe" title="Command">
                         Command
                         <span class="action-glyph">1</span>
                     </a>

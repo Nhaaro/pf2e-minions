@@ -4,12 +4,15 @@ import './styles/module.css';
 import { MODULE_NAME } from 'src/constants.ts';
 import { registerTemplates } from './scripts/register-templates.ts';
 import { registerHooks } from './module/index.ts';
+import { actionHandler } from './module/chat.ts';
 
 type Payload<Action extends string> = {
     action: Action;
 };
-export interface ActionRequest extends Payload<'action'> {
-    key: 'key';
+export interface ActionRequest extends Payload<'commandHandler'> {
+    nativeEvent: DeepPartial<MouseEvent> & Pick<MouseEvent, 'shiftKey'>;
+    messageId: string;
+    minionUuid?: string;
 }
 
 export type SocketPayload = ActionRequest;
@@ -25,6 +28,9 @@ Hooks.once('ready', async function () {
 
     game.socket.on(`module.${MODULE_NAME}`, ({ action, ...payload }) => {
         switch (action) {
+            case 'commandHandler':
+                actionHandler(payload);
+                break;
             default:
                 console.groupCollapsed(`${MODULE_NAME}::${action}`);
                 console.log(payload);
