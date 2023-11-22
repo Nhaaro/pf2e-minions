@@ -6,10 +6,15 @@ import { registerTemplates } from './scripts/register-templates.ts';
 import { registerHooks } from './module/index.ts';
 import { actionHandler } from './module/chat.ts';
 
-type Payload<Action extends string> = {
-    action: Action;
-};
-export interface ActionRequest extends Payload<'commandHandler'> {
+type Action<Action extends string, Callback extends (() => unknown) | undefined = undefined> = Callback extends Function
+    ? {
+          action: Action;
+          callback: Callback;
+      }
+    : {
+          action: Action;
+      };
+export interface ActionRequest extends Action<'commandHandler', () => void> {
     nativeEvent: DeepPartial<MouseEvent> & Pick<MouseEvent, 'shiftKey'>;
     messageId: string;
     minionUuid?: string;
@@ -26,10 +31,10 @@ Hooks.once('init', async function () {
 Hooks.once('ready', async function () {
     console.log(`${MODULE_NAME} | Ready`);
 
-    game.socket.on(`module.${MODULE_NAME}`, ({ action, ...payload }) => {
+    game.socket.on(`module.${MODULE_NAME}`, async ({ action, ...payload }, callback) => {
         switch (action) {
             case 'commandHandler':
-                actionHandler(payload);
+                await actionHandler(payload);
                 break;
             default:
                 console.groupCollapsed(`${MODULE_NAME}::${action}`);

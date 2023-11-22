@@ -2,7 +2,10 @@ import * as io from 'socket.io';
 import { SocketPayload } from 'src/module.ts';
 
 interface ClientToServerEvents {
-    'module.pf2e-minions': (payload: SocketPayload) => void;
+    'module.pf2e-minions': (
+        payload: Omit<SocketPayload, 'callback'>,
+        callback: SocketPayload['callback']
+    ) => void;
 }
 
 declare global {

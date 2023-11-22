@@ -62,7 +62,9 @@ Hooks.on('renderChatMessage', async (...args) => {
         element.querySelector<HTMLHeadingElement>('.minion-name')?.addEventListener('dblclick', clickHandler);
         /** Send action to chat */
         element.querySelector<HTMLAnchorElement>('a')?.addEventListener('click', nativeEvent => {
-            const payload: ActionRequest = {
+            if (!element.dataset.minionUuid) return;
+
+            const payload: Omit<ActionRequest, 'callback'> = {
                 action: 'commandHandler',
                 nativeEvent: {
                     shiftKey: nativeEvent.shiftKey,
@@ -72,6 +74,10 @@ Hooks.on('renderChatMessage', async (...args) => {
             };
             if (game.user.isGM) actionHandler(payload);
             else game.socket.emit(`module.${MODULE_NAME}`, payload);
+
+            const [, , , minionId] = element.dataset.minionUuid.split('.');
+            const minionToken = canvas.tokens.get(minionId);
+            !minionToken?.controlled && minionToken?.control({ releaseOthers: !payload.nativeEvent.shiftKey });
         });
     });
 
@@ -108,7 +114,7 @@ Hooks.on('renderChatMessage', async (...args) => {
     }
 });
 
-export const actionHandler = async (payload: Omit<ActionRequest, 'action'>) => {
+export const actionHandler = async (payload: Omit<ActionRequest, 'action' | 'callback'>) => {
     const message = game.messages.get(payload.messageId);
     if (!message) {
         console.error(MODULE_NAME, `message ${payload.messageId} not found, unable to update`);
@@ -200,10 +206,6 @@ export const actionHandler = async (payload: Omit<ActionRequest, 'action'>) => {
         ChatMessage.create(chatData);
     }
 
-    !minionToken.controlled && minionToken.control({ releaseOthers: !payload.nativeEvent.shiftKey });
-
-    {
-        actionsWrapper?.remove();
-        message?.update({ content: content.outerHTML });
-    }
+    actionsWrapper?.remove();
+    message?.update({ content: content.outerHTML });
 };
