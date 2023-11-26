@@ -167,14 +167,14 @@ export const updateMinionsCardAction = createAction(
                 system: {
                     description: {
                         value: game.i18n.format(`${translation}.Description`, {
-                            spellCompendium: (item?.name && `@UUID[${item.sourceId}]`) || 'that spell',
+                            spellCompendium: (item?.name && `@UUID[${item.uuid}]`) || 'that spell',
                             spellName: item?.name || 'the spell',
                             duration:
                                 (item &&
                                     'duration' in item.system &&
                                     item.system.duration.value.includes('sustain') &&
                                     item.system.duration.value.replace('sustained up to ', '')) ||
-                                '10 minute',
+                                '10 minutes',
                         }),
                     },
                 },
