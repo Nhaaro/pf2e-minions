@@ -1,3 +1,7 @@
+[data-dorako-ui-theme].chat-message > .message-content ul.combatant-minions {
+    border: unset;
+    box-shadow: unset;
+}
 ul.combatant-minions {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
