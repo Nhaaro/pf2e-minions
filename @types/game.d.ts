@@ -1,11 +1,11 @@
 import * as io from 'socket.io';
-import { SocketPayload } from 'src/module.ts';
+import { SocketData } from 'src/module.ts';
+import { ActionData } from 'utils/socket/actions.ts';
+
+type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;
 
 interface ClientToServerEvents {
-    'module.pf2e-minions': (
-        payload: Omit<SocketPayload, 'callback'>,
-        callback: SocketPayload['callback']
-    ) => void;
+    'module.pf2e-minions': (data: ActionData<string, unknown>, userId?: string) => void;
 }
 
 declare global {
