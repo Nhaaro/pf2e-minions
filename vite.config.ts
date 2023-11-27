@@ -126,6 +126,7 @@ const config = defineConfig(({ command, mode }) => {
                 watch: { buildDelay: 100 },
             },
         },
+        clearScreen: false,
         plugins,
         css: {
             devSourcemap: buildMode === 'development',

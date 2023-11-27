@@ -14,17 +14,17 @@ export async function createMinionsMessage(combatant: CombatantPF2e, uuids: stri
 
     let minions = await Promise.all(
         uuids.map(async uuid => {
-            const [, scene, , id] = uuid.split('.');
-            if (scene !== combatant.sceneId) return;
+            const [, sceneId, , id] = uuid.split('.');
+            if (sceneId !== combatant.sceneId) return;
 
             const minion = canvas.tokens.get(id);
             if (!minion) return;
 
             return {
+                uuid: uuid,
                 name: minion.document.name,
                 img: minion.document.texture.src,
                 type: minion.document.flags[MODULE_NAME].type,
-                uuid: uuid,
                 item: minion.document.flags[MODULE_NAME].item,
             };
         })
@@ -50,7 +50,8 @@ export async function createMinionsMessage(combatant: CombatantPF2e, uuids: stri
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
-    const html = $html[0]!;
+    if (!message.flags[MODULE_NAME] || !$html[0]) return;
+    const html = $html[0];
 
     html.querySelectorAll<HTMLLIElement>('.minion-row').forEach(element => {
         /** Highlight the minion's corresponding token on the canvas */

@@ -4,7 +4,7 @@
 if (import.meta.hot) {
     // Handle hot reloading of handlebars templates
     import.meta.hot.on('handlebars:update', ({ file, content, foundryBaseDir }) => {
-        const templatesDir = `${foundryBaseDir}/templates/`;
+        const templatesDir = `${foundryBaseDir}/templates`;
 
         const compiled = Handlebars.compile(content);
         Handlebars.registerPartial(file, compiled);
