@@ -12,8 +12,8 @@ type sourceData = {
     creatureActor: { docType: 'DocWrapper'; document: string };
     flags: {
         item?:
-            | SpellPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>>
-            | AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>>;
+            | (SpellPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>> & { type: 'spell' })
+            | (AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>> & { type: 'action' });
     };
     location: MeasuredTemplatePF2e;
     noAnimation: boolean;
@@ -24,7 +24,7 @@ type sourceData = {
     userId: string;
 };
 type updates<Actor extends CreaturePF2e | NPCPF2e = CreaturePF2e | NPCPF2e> = {
-    actor: DeepPartial<Actor>;
+    actor: DeepPartial<Actor> & { flags: DocumentFlags };
     token: DeepPartial<PrototypeTokenPF2e<Actor>> & { flags: DocumentFlags };
 };
 
@@ -59,7 +59,8 @@ Hooks.on('fs-preSummon', async (...args) => {
     if (updates.token.sight) updates.token.sight.enabled = true;
 
     const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
-    console.debug(`${MODULE_NAME} | tokenFlags`, tokenFlags);
+    const actorFlags = (updates.actor.flags[MODULE_NAME] ??= {});
+    console.debug(`${MODULE_NAME} | module flags`, { tokenFlags, actorFlags });
     tokenFlags.master = master.id;
     tokenFlags.item = item.sourceId;
 
@@ -68,12 +69,18 @@ Hooks.on('fs-preSummon', async (...args) => {
         | (NPCPF2e & { type: 'npc' });
     if (character.type === 'character' && character.class?.name === 'Eidolon') tokenFlags.type = 'eidolon';
 
-    if ('duration' in item.system && item.system.duration.value.includes('sustain')) tokenFlags.type = 'sustained';
+    if (item.type === 'spell') {
+        actorFlags.rank = item.rank;
+        actorFlags.spellDC = master.attributes.spellDC;
 
-    const actorTraits = updates.actor.system?.traits?.value;
-    if (actorTraits && !(['minion', 'eidolon'] as CreatureTrait[]).some(trait => actorTraits.includes(trait))) {
-        actorTraits.push('summoned');
-        actorTraits.push('minion');
+        if (item.system.duration.value.includes('sustain')) tokenFlags.type = 'sustained';
+
+        const actorTraits = updates.actor.system?.traits?.value;
+        if (actorTraits && !(['minion', 'eidolon'] as CreatureTrait[]).some(trait => actorTraits.includes(trait))) {
+            actorTraits.push('summoned');
+            actorTraits.push('minion');
+        }
     }
+
     console.groupEnd();
 });

@@ -1,6 +1,7 @@
 import * as io from 'socket.io';
 import { SocketData } from 'src/module.ts';
 import { ActionData } from 'utils/socket/actions.ts';
+import { ClassDCData } from '@actor/character/data.js';
 
 type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;
 
@@ -21,5 +22,16 @@ declare global {
     > {
         /** A reference to the open Socket.io connection */
         socket: io.Socket<ClientToServerEvents>;
+    }
+}
+
+declare module '@actor/data/base.js' {
+    interface ActorAttributesSource {
+        /** Used for saves related to class abilities */
+        classDC: ClassDCData | null | { value: number };
+        /** The best spell DC, used for certain saves related to feats */
+        spellDC: { rank?: number; value: number } | null;
+        /** The higher between highest spellcasting DC and (if present) class DC */
+        classOrSpellDC: { rank?: number; value: number };
     }
 }
