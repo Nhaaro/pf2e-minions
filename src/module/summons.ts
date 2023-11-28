@@ -1,23 +1,19 @@
 import { CreaturePF2e, CreatureTrait } from '@actor/creature/index.js';
 import { PrototypeTokenPF2e } from '@actor/data/base.js';
-import { ActorPF2e, CharacterPF2e, NPCPF2e } from '@actor/index.js';
+import { ActorPF2e } from '@actor/index.js';
 import { ConditionSource, ItemSourcePF2e } from '@item/base/data/index.js';
-import { AbilityItemPF2e, ConditionPF2e, ItemPF2e, SpellPF2e } from '@item/index.js';
+import { ConditionPF2e, ItemPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
 import { FlatModifierRuleElement } from '@module/rules/rule-element/flat-modifier.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
 import { MODULE_NAME } from 'src/constants.ts';
-import { isConditionData, isConditionDocument } from 'src/lib/lib.ts';
+import { isCharacterDocument, isConditionData, isConditionDocument, isSpellDocument } from 'src/lib/lib.ts';
 
 type location = { x: number; y: number };
 type sourceData = {
     amount: number;
     creatureActor: { docType: 'DocWrapper'; document: string };
-    flags: {
-        item?:
-            | (SpellPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>> & { type: 'spell' })
-            | (AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e>>> & { type: 'action' });
-    };
+    flags: { item?: ItemPF2e };
     location: MeasuredTemplatePF2e;
     noAnimation: boolean;
     player: string;
@@ -26,9 +22,9 @@ type sourceData = {
     updates: {};
     userId: string;
 };
-type updates<Actor extends CreaturePF2e | NPCPF2e = CreaturePF2e | NPCPF2e> = {
-    actor: DeepPartial<Actor> & { flags: DocumentFlags };
-    token: DeepPartial<PrototypeTokenPF2e<Actor>> & { flags: DocumentFlags };
+type updates = {
+    actor: DeepPartial<ActorPF2e> & { flags: DocumentFlags };
+    token: DeepPartial<PrototypeTokenPF2e<ActorPF2e>> & { flags: DocumentFlags };
 };
 
 Hooks.on('fs-preSummon', async (...args) => {
@@ -67,12 +63,10 @@ Hooks.on('fs-preSummon', async (...args) => {
     tokenFlags.master = master.id;
     tokenFlags.item = item.sourceId;
 
-    const character = JSON.parse(sourceData.creatureActor.document) as
-        | (CharacterPF2e & { type: 'character' })
-        | (NPCPF2e & { type: 'npc' });
-    if (character.type === 'character' && character.class?.name === 'Eidolon') tokenFlags.type = 'eidolon';
+    const creature = JSON.parse(sourceData.creatureActor.document) as CreaturePF2e;
+    if (isCharacterDocument(creature) && creature.class?.name === 'Eidolon') tokenFlags.type = 'eidolon';
 
-    if (item.type === 'spell') {
+    if (isSpellDocument(item)) {
         actorFlags.rank = item.rank;
         actorFlags.spellDC = master.attributes.spellDC;
 
