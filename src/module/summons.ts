@@ -116,6 +116,7 @@ Hooks.on('deleteItem', async (...args) => {
     console.groupEnd();
 });
 async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<ConditionSource>) {
+    if (!game.user.isGM) return;
     if (!document.actor?.getFlag(MODULE_NAME, 'minions')) {
         console.info(`${MODULE_NAME} | No minions, skipping...`);
         console.groupEnd();
