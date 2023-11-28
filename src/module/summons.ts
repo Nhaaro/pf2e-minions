@@ -2,11 +2,12 @@ import { CreaturePF2e, CreatureTrait } from '@actor/creature/index.js';
 import { PrototypeTokenPF2e } from '@actor/data/base.js';
 import { ActorPF2e, CharacterPF2e, NPCPF2e } from '@actor/index.js';
 import { ConditionSource, ItemSourcePF2e } from '@item/base/data/index.js';
-import { AbilityItemPF2e, ConditionPF2e, SpellPF2e } from '@item/index.js';
+import { AbilityItemPF2e, ConditionPF2e, ItemPF2e, SpellPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
 import { FlatModifierRuleElement } from '@module/rules/rule-element/flat-modifier.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
 import { MODULE_NAME } from 'src/constants.ts';
+import { isConditionData, isConditionDocument } from 'src/lib/lib.ts';
 
 type location = { x: number; y: number };
 type sourceData = {
@@ -87,16 +88,10 @@ Hooks.on('fs-preSummon', async (...args) => {
     console.groupEnd();
 });
 
-function isConditionChanges(
-    document: any,
-    _changes: DeepPartial<ItemSourcePF2e>
-): _changes is DeepPartial<ConditionSource> {
-    return document.type === 'condition';
-}
 Hooks.on('createItem', async (...args) => {
     // for some reason type differs from what shows up in console
-    const [document] = args as [document: ConditionPF2e & { type: 'condition' }, options: object, userId: string];
-    if (!(document.type === 'condition')) return;
+    const [document] = args as [document: ItemPF2e, options: object, userId: string];
+    if (!isConditionDocument(document)) return;
     console.group(`${MODULE_NAME} | preCreateItem`, ...args);
 
     await updateSpellDC(document);
@@ -105,12 +100,12 @@ Hooks.on('createItem', async (...args) => {
 });
 Hooks.on('updateItem', async (...args) => {
     const [document, change] = args as [
-        document: ConditionPF2e & { type: 'condition' },
+        document: ItemPF2e,
         change: DeepPartial<ItemSourcePF2e>,
         options: object,
         userId: string
     ];
-    if (!(document.type === 'condition' && isConditionChanges(document, change))) return;
+    if (!(isConditionDocument(document) && isConditionData(document, change))) return;
     console.group(`${MODULE_NAME} | preUpdateItem`, ...args);
 
     await updateSpellDC(document, change);
@@ -118,8 +113,8 @@ Hooks.on('updateItem', async (...args) => {
     console.groupEnd();
 });
 Hooks.on('deleteItem', async (...args) => {
-    const [document] = args as [document: ConditionPF2e & { type: 'condition' }, options: object, userId: string];
-    if (!(document.type === 'condition')) return;
+    const [document] = args as [document: ItemPF2e, options: object, userId: string];
+    if (!isConditionDocument(document)) return;
     console.group(`${MODULE_NAME} | preDeleteItem`, ...args);
 
     await updateSpellDC(document);

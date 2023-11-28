@@ -1,25 +1,16 @@
-import { ActorSourcePF2e, FamiliarSource } from '@actor/data/index.js';
-import { ActorPF2e, CharacterPF2e, FamiliarPF2e, NPCPF2e } from '@actor/index.js';
+import { ActorSourcePF2e } from '@actor/data/index.js';
+import { ActorPF2e } from '@actor/index.js';
 import { MODULE_NAME } from 'src/constants.ts';
-
-function isFamiliarChanges(
-    document: FamiliarPF2e | CharacterPF2e | NPCPF2e,
-    _changes: DeepPartial<ActorSourcePF2e>
-): _changes is DeepPartial<FamiliarSource> {
-    return document.type === 'familiar';
-}
+import { isFamiliarData, isFamiliarDocument } from 'src/lib/lib.ts';
 
 Hooks.on('preUpdateActor', async (...args) => {
     const [document, changes] = args as [
-        document:
-            | (FamiliarPF2e & { type: 'familiar' })
-            | (CharacterPF2e & { type: 'character' })
-            | (NPCPF2e & { type: 'npc' }),
+        document: ActorPF2e,
         changes: DeepPartial<ActorSourcePF2e>,
         options: object,
         userId: string
     ];
-    if (!(document.type === 'familiar' && isFamiliarChanges(document, changes))) return;
+    if (!(isFamiliarDocument(document) && isFamiliarData(document, changes))) return;
     console.group(`${MODULE_NAME} | preUpdateActor`, ...args);
 
     if (!changes.system?.master?.id) {
