@@ -3,6 +3,11 @@ import { MODULE_NAME } from 'src/constants.ts';
 const moduleTemplates = {
     [MODULE_NAME]: {
         minions: `modules/${MODULE_NAME}/templates/minions.hbs`,
+        sidebar: {
+            combatTracker: {
+                minions: `modules/${MODULE_NAME}/templates/sidebar/combat-tracker/minions.hbs`,
+            },
+        },
     },
 };
 const systemTemplates = {
