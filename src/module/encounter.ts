@@ -16,7 +16,7 @@ Hooks.on('pf2e.startTurn', async (...args) => {
 });
 
 Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
-    const [document, $html] = args as [
+    const [document, $html, data] = args as [
         document: EncounterTrackerPF2e<EncounterPF2e>,
         $html: JQuery<HTMLElement>,
         data: CombatTrackerData
@@ -46,6 +46,16 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                         id: id,
                         name: minion.name,
                         img: minion.texture.src,
+                        ...('resource' in data.settings
+                            ? {
+                                  hasResource: 'resource' in data.settings,
+                                  resource:
+                                      foundry.utils.getProperty(
+                                          minion.actor?.system || {},
+                                          data.settings.resource as string
+                                      ) || null,
+                              }
+                            : {}),
                     };
                 })
             );
