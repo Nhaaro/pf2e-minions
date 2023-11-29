@@ -5,6 +5,7 @@ import { EncounterTrackerPF2e } from '@module/apps/sidebar/encounter-tracker.js'
 import { EncounterPF2e } from '@module/encounter/document.js';
 import { TEMPLATES } from 'src/scripts/register-templates.ts';
 import { TokenDocumentPF2e } from '@scene/index.js';
+import { createHTMLElement, fontAwesomeIcon, htmlQuery, htmlQueryAll } from 'src/system/src/util/index.ts';
 
 Hooks.on('pf2e.startTurn', async (...args) => {
     const combatant = args[0] as CombatantPF2e;
@@ -66,6 +67,40 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 master: combatant.id,
             });
             masterRow.after(rows);
+
+            for (const minionRow of masterRow
+                .siblings(`ul[data-combatant-id=${combatant.id}]`)
+                .find<HTMLLIElement>('li.combatant.minion')) {
+                const minion = canvas.tokens.get(minionRow.dataset.combatantId!);
+
+                // Adjust controls with system extensions
+                for (const control of htmlQueryAll(minionRow, 'a.combatant-control')) {
+                    const controlIcon = htmlQuery(control, 'i');
+                    if (!controlIcon) continue;
+
+                    // Ensure even spacing between combatant controls
+                    controlIcon.classList.remove('fas');
+                    controlIcon.classList.add('fa-solid', 'fa-fw');
+
+                    if (control.dataset.control === 'pingCombatant') {
+                        // Use an icon for the `pingCombatant` control that looks less like a targeting reticle
+                        controlIcon.classList.remove('fa-bullseye-arrow');
+                        controlIcon.classList.add('fa-signal-stream');
+
+                        // Add a `targetCombatant` control after `toggleDefeated`
+                        if (game.scenes.viewed?.tokens.has(minion?.id ?? '')) {
+                            const targetControl = createHTMLElement('a', {
+                                classes: ['combatant-control'],
+                                dataset: { control: 'toggleTarget', tooltip: 'COMBAT.ToggleTargeting' },
+                                children: [
+                                    fontAwesomeIcon('location-crosshairs', { style: 'duotone', fixedWidth: true }),
+                                ],
+                            });
+                            control.before(targetControl);
+                        }
+                    }
+                }
+            }
 
             console.groupEnd();
         }
