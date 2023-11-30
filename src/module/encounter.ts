@@ -202,6 +202,19 @@ Hooks.on('targetToken', (...args) => {
     );
     console.groupEnd();
 });
+Hooks.on('hoverToken', (...args) => {
+    const [token, hovered] = args as [token: TokenPF2e, boolean];
+    if (!token.document?.flags[MODULE_NAME]?.master) return;
+    console.group(`${MODULE_NAME} | hoverToken`, ...args);
+
+    const tracker = $('[id=combat-tracker ]');
+    const minionRow = tracker.find(`.combatant[data-minion-id=${token.id}]`);
+
+    if (hovered) minionRow.addClass('hover');
+    else minionRow.removeClass('hover');
+
+    console.groupEnd();
+});
 
 function combatantAndTokenDoc(document: CombatantPF2e | TokenDocumentPF2e): {
     combatant: CombatantPF2e | null;
