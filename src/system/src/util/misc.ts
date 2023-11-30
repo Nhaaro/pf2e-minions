@@ -58,6 +58,31 @@ function ErrorPF2e(message: string): Error {
     return Error(`PF2e System | ${message}`);
 }
 
+/** Localizes a list of strings into a (possibly comma-delimited) list for the current language */
+function localizeList(items: string[], { conjunction = 'or' }: { conjunction?: 'and' | 'or' } = {}): string {
+    items = [...items].sort((a, b) => a.localeCompare(b, game.i18n.lang));
+    const parts = conjunction === 'or' ? 'PF2E.ListPartsOr' : 'PF2E.ListPartsAnd';
+
+    if (items.length === 0) return '';
+    if (items.length === 1) return items[0];
+    if (items.length === 2) {
+        return game.i18n.format(`${parts}.two`, { first: items[0], second: items[1] });
+    }
+
+    let result = game.i18n.format(`${parts}.start`, { first: items[0], second: '{second}' });
+    for (let i = 1; i <= items.length - 2; i++) {
+        if (i === items.length - 2) {
+            const end = game.i18n.format(`${parts}.end`, { first: items[i], second: items[items.length - 1] });
+            result = result.replace('{second}', end);
+        } else {
+            const newSegment = game.i18n.format(`${parts}.middle`, { first: items[i], second: '{second}' });
+            result = result.replace('{second}', newSegment);
+        }
+    }
+
+    return result;
+}
+
 /** Generate and return an HTML element for a FontAwesome icon */
 type FontAwesomeStyle = 'solid' | 'regular' | 'duotone';
 

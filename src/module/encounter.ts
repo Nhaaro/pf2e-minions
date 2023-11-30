@@ -5,7 +5,14 @@ import { EncounterTrackerPF2e } from '@module/apps/sidebar/encounter-tracker.js'
 import { EncounterPF2e } from '@module/encounter/document.js';
 import { TEMPLATES } from 'src/scripts/register-templates.ts';
 import { TokenDocumentPF2e } from '@scene/index.js';
-import { createHTMLElement, fontAwesomeIcon, htmlQuery, htmlQueryAll } from 'src/system/src/util/index.ts';
+import {
+    createHTMLElement,
+    fontAwesomeIcon,
+    htmlQuery,
+    htmlQueryAll,
+    localizeList,
+} from 'src/system/src/util/index.ts';
+import { TokenPF2e } from '@module/canvas/index.js';
 
 Hooks.on('pf2e.startTurn', async (...args) => {
     const combatant = args[0] as CombatantPF2e;
@@ -122,8 +129,15 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 }
             }
 
-            for (const minionRow of $minionsList.find<HTMLLIElement>('li.combatant.minion')) {
-                const minion = canvas.tokens.get(minionRow.dataset.combatantId!);
+            for (const minionRow of $minionsList.find<HTMLLIElement>('li.combatant')) {
+                const minion = canvas.tokens.get(minionRow.dataset.minionId!);
+
+                // Create section for list of users targeting a combatant's token
+                const nameHeader = htmlQuery(minionRow, '.token-name h4')!;
+                nameHeader.innerHTML = [
+                    createHTMLElement('span', { classes: ['name'], children: [nameHeader.innerText] }).outerHTML,
+                    createHTMLElement('span', { classes: ['users-targeting'] }).outerHTML,
+                ].join('');
 
                 // Adjust controls with system extensions
                 for (const control of htmlQueryAll(minionRow, 'a.combatant-control')) {
@@ -152,6 +166,8 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                         }
                     }
                 }
+
+                refreshTargetDisplay.call(document, combatant, minion?.document!);
             }
 
             console.groupEnd();
@@ -160,3 +176,82 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
 
     console.groupEnd();
 });
+Hooks.on('targetToken', (...args) => {
+    const [, token] = args;
+    if (!token.document?.flags[MODULE_NAME]?.master) return;
+    console.group(`${MODULE_NAME} | createToken`, ...args);
+
+    // const master = (await fromUuid(`Actor.${token.document.flags[MODULE_NAME].master}`)) as ActorPF2e;
+    const master = game.actors.get(token.document.getFlag(MODULE_NAME, 'master') as string);
+    const combatant = game.combat?.combatants.get(master?.combatant?.id || '');
+    if (!master || !combatant || !token) {
+        console.groupEnd();
+        return;
+    }
+
+    refreshTargetDisplay.call(
+        game.combats.apps[0] as EncounterTrackerPF2e<EncounterPF2e>,
+        combatant,
+        (token as TokenPF2e).document
+    );
+    console.groupEnd();
+});
+
+function combatantAndTokenDoc(document: CombatantPF2e | TokenDocumentPF2e): {
+    combatant: CombatantPF2e | null;
+    tokenDoc: TokenDocumentPF2e | null;
+} {
+    return 'token' in document
+        ? { combatant: document, tokenDoc: document.token }
+        : { combatant: document.combatant, tokenDoc: document };
+}
+
+/** Refresh the list of users targeting a combatant's token as well as the active state of the target toggle */
+function refreshTargetDisplay(
+    this: EncounterTrackerPF2e<EncounterPF2e>,
+    combatantOrToken: CombatantPF2e | TokenDocumentPF2e,
+    minionDoc: TokenDocumentPF2e
+): void {
+    if (!this.viewed || !canvas.ready) return;
+
+    const { combatant, tokenDoc } = combatantAndTokenDoc(combatantOrToken);
+    if (combatant?.encounter !== this.viewed || tokenDoc?.combatant !== combatant) {
+        return;
+    }
+
+    for (const tracker of htmlQueryAll(document, '#combat, #combat-popout')) {
+        const combatantRow = htmlQuery(tracker, `li.combatant[data-combatant-id="${combatant?.id ?? null}"]`);
+        if (!combatantRow) return;
+        const minionRow = htmlQuery(
+            combatantRow.parentElement,
+            `ul[data-combatant-id="${combatant?.id ?? null}"] li.combatant[data-minion-id=${minionDoc.id}]`
+        );
+        if (!minionRow) return;
+
+        const usersTargetting = game.users.filter(u => Array.from(u.targets).some(t => t.document === minionDoc));
+
+        const userIndicators = usersTargetting.map((user): HTMLElement => {
+            const icon = fontAwesomeIcon('location-crosshairs', { style: 'duotone', fixedWidth: true });
+            icon.style.color = user.color;
+            return icon;
+        });
+
+        const targetingSection = htmlQuery(minionRow, '.users-targeting');
+        if (targetingSection) {
+            targetingSection.innerHTML = userIndicators.map(i => i.outerHTML).join('');
+            targetingSection.dataset.tooltip = game.i18n.format('COMBAT.TargetedBy', {
+                list: localizeList(
+                    usersTargetting.map(u => u.name),
+                    { conjunction: 'and' }
+                ),
+            });
+        }
+
+        const targetControlIcon = htmlQuery(minionRow, 'a.combatant-control[data-control=toggleTarget]');
+        if (usersTargetting.includes(game.user)) {
+            targetControlIcon?.classList.add('active');
+        } else {
+            targetControlIcon?.classList.remove('active');
+        }
+    }
+}
