@@ -31,8 +31,8 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             if (!uuids.length) continue;
 
             console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e | combatant`, combatant, combat);
-            const masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id=${combatant.id}]`);
-            console.log(uuids, masterRow);
+            const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id=${combatant.id}]`);
+            const masterRow = $masterRow[0];
 
             let minions = await Promise.all(
                 uuids.map(async uuid => {
@@ -96,11 +96,33 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 minions,
                 master: combatant.id,
             });
-            masterRow.after(rows);
+            $masterRow.after(rows);
+            const $minionsList = $masterRow.siblings(`ul[data-combatant-id=${combatant.id}]`);
+            const minionsList = $minionsList[0] as unknown as HTMLUListElement;
 
-            for (const minionRow of masterRow
-                .siblings(`ul[data-combatant-id=${combatant.id}]`)
-                .find<HTMLLIElement>('li.combatant.minion')) {
+            const allyColor = (c: CombatantPF2e<EncounterPF2e>) =>
+                c.actor?.hasPlayerOwner
+                    ? CONFIG.Canvas.dispositionColors.PARTY
+                    : CONFIG.Canvas.dispositionColors.FRIENDLY;
+
+            // Highlight the active-turn participant's alliance color
+            if (combatant?.actor && document.viewed?.combatant === combatant) {
+                const alliance = combatant.actor.alliance;
+                const dispositionColor = new foundry.utils.Color(
+                    alliance === 'party'
+                        ? allyColor(combatant)
+                        : alliance === 'opposition'
+                        ? CONFIG.Canvas.dispositionColors.HOSTILE
+                        : CONFIG.Canvas.dispositionColors.NEUTRAL
+                );
+                if (minionsList) {
+                    masterRow.style.borderBottomStyle = 'dashed';
+                    minionsList.style.background = dispositionColor.toRGBA(0.1);
+                    minionsList.style.borderColor = dispositionColor.toString();
+                }
+            }
+
+            for (const minionRow of $minionsList.find<HTMLLIElement>('li.combatant.minion')) {
                 const minion = canvas.tokens.get(minionRow.dataset.combatantId!);
 
                 // Adjust controls with system extensions
