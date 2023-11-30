@@ -266,8 +266,13 @@ function activateListeners($html: JQuery<HTMLElement>) {
     const tracker = $html.find('#combat-tracker');
     const minions = tracker.find('.combatant[data-minion-id]');
 
+    const state = {};
+
     // Combatant control
     $html.find('.combatant-control').on('click', ev => _onCombatantControl(ev));
+
+    // Hover on Combatant
+    minions.on('mouseenter', _onCombatantHoverIn.bind(state)).on('mouseleave', _onCombatantHoverOut.bind(state));
 }
 
 /**
@@ -310,4 +315,27 @@ async function _onPingCombatant(minion: TokenDocumentPF2e) {
     if (!canvas.ready || minion.scene?.id !== canvas.scene?.id) return;
     if (!minion.object?.visible) return ui.notifications.warn(game.i18n.localize('COMBAT.PingInvisibleToken'));
     await canvas.ping(minion.object.center, {});
+}
+
+/**
+ * Handle mouse-hover events on a combatant in the tracker
+ */
+function _onCombatantHoverIn(event: JQuery.MouseEnterEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
+    event.preventDefault();
+    if (!canvas.ready) return;
+    const li = event.currentTarget;
+    const token = canvas.tokens.get(li?.dataset.minionId || '')!;
+    if (token?.isVisible) {
+        if (!token.controlled) token.emitHoverIn(event.originalEvent!);
+        this._highlighted = token;
+    }
+}
+
+/**
+ * Handle mouse-unhover events for a combatant in the tracker
+ */
+function _onCombatantHoverOut(event: JQuery.MouseLeaveEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
+    event.preventDefault();
+    if (this._highlighted) this._highlighted.emitHoverOut(event.originalEvent);
+    this._highlighted = null;
 }
