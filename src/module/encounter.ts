@@ -273,6 +273,9 @@ function activateListeners($html: JQuery<HTMLElement>) {
 
     // Hover on Combatant
     minions.on('mouseenter', _onCombatantHoverIn.bind(state)).on('mouseleave', _onCombatantHoverOut.bind(state));
+
+    // Click on Combatant
+    minions.on('click', _onCombatantMouseDown.bind(state));
 }
 
 /**
@@ -338,4 +341,28 @@ function _onCombatantHoverOut(event: JQuery.MouseLeaveEvent<HTMLElement, undefin
     event.preventDefault();
     if (this._highlighted) this._highlighted.emitHoverOut(event.originalEvent);
     this._highlighted = null;
+}
+
+/**
+ * Handle mouse-down event on a combatant name in the tracker
+ */
+async function _onCombatantMouseDown(event: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
+    event.preventDefault();
+
+    const li = event.currentTarget;
+    const token = canvas.tokens.get(li?.dataset.minionId || '')!;
+    const minion = token.document;
+    if (!minion.actor?.testUserPermission(game.user, 'OBSERVER')) return;
+    const now = Date.now();
+
+    // Handle double-left click to open sheet
+    const dt = now - this._clickTime;
+    this._clickTime = now;
+    if (dt <= 250) return minion.actor?.sheet.render(true);
+
+    // Control and pan to Token object
+    if (token) {
+        token.control({ releaseOthers: true });
+        return canvas.animatePan(token.center);
+    }
 }
