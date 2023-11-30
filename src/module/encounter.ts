@@ -37,27 +37,57 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             let minions = await Promise.all(
                 uuids.map(async uuid => {
                     const [, sceneId, , id] = uuid.split('.');
-                    if (sceneId !== combatant.sceneId) return;
 
                     const minion = await fromUuid<TokenDocumentPF2e>(uuid);
                     if (!minion) return;
 
-                    return {
-                        user: game.user,
+                    // Prepare template data
+                    const resource =
+                        combatant.permission >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+                            ? 'resource' in data.settings
+                                ? foundry.utils.getProperty(
+                                      minion.actor?.system || {},
+                                      data.settings.resource as string
+                                  )
+                                : null
+                            : null;
+
+                    const templateData: Record<string, any> = {
                         id: id,
                         name: minion.name,
                         img: minion.texture.src,
-                        ...('resource' in data.settings
-                            ? {
-                                  hasResource: 'resource' in data.settings,
-                                  resource:
-                                      foundry.utils.getProperty(
-                                          minion.actor?.system || {},
-                                          data.settings.resource as string
-                                      ) || null,
-                              }
-                            : {}),
+                        // active: i === combat.turn,
+                        owner: minion.isOwner,
+                        // defeated: combatant.isDefeated,
+                        hidden: minion.hidden,
+                        hasResource: resource !== null,
+                        resource: resource,
+                        canPing:
+                            sceneId === canvas.scene?.id &&
+                            game.user.hasPermission('PING_CANVAS' as unknown as UserPermission),
                     };
+                    templateData.css = [
+                        templateData.active ? 'active' : '',
+                        templateData.hidden ? 'hidden' : '',
+                        templateData.defeated ? 'defeated' : '',
+                    ]
+                        .join(' ')
+                        .trim();
+
+                    // Actor and Token status effects
+                    templateData.effects = new Set();
+                    if (minion) {
+                        minion.effects.forEach(e => templateData.effects.add(e));
+                        if (minion.overlayEffect) templateData.effects.add(minion.overlayEffect);
+                    }
+                    if (minion.actor) {
+                        for (const effect of minion.actor.temporaryEffects) {
+                            if (effect.statuses.has(CONFIG.specialStatusEffects.DEFEATED)) templateData.defeated = true;
+                            else if (effect.icon) templateData.effects.add(effect.icon);
+                        }
+                    }
+                    templateData.user = game.user;
+                    return templateData;
                 })
             );
             minions = minions.filter(m => m);
