@@ -170,6 +170,12 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 refreshTargetDisplay.call(document, combatant, minion?.document!);
             }
 
+            try {
+                activateListeners($html);
+            } catch (error) {
+                console.error(`${MODULE_NAME} | renderEncounterTrackerPF2e | listeners`, error);
+            }
+
             console.groupEnd();
         }
     }
@@ -254,4 +260,54 @@ function refreshTargetDisplay(
             targetControlIcon?.classList.remove('active');
         }
     }
+}
+
+function activateListeners($html: JQuery<HTMLElement>) {
+    const tracker = $html.find('#combat-tracker');
+    const minions = tracker.find('.combatant[data-minion-id]');
+
+    // Combatant control
+    $html.find('.combatant-control').on('click', ev => _onCombatantControl(ev));
+}
+
+/**
+ * Handle a Combatant control toggle
+ */
+async function _onCombatantControl(event: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    // if (!this.viewed) return;
+
+    const control = event.currentTarget.dataset.control;
+    const li = event.currentTarget.closest<HTMLLIElement>('.combatant[data-minion-id]');
+    const minion = canvas.tokens.get(li?.dataset.minionId || '')!;
+
+    // Switch control action
+    switch (control) {
+        case 'toggleTarget': {
+            return onToggleTarget(minion.document, event.originalEvent);
+        }
+        // Actively ping the Combatant
+        case 'pingCombatant': {
+            return _onPingCombatant(minion.document);
+        }
+    }
+}
+
+async function onToggleTarget(tokenDoc: TokenDocumentPF2e | null, event: MouseEvent | undefined): Promise<void> {
+    if (!tokenDoc) return;
+
+    const isTargeted = Array.from(game.user.targets).some(t => t.document === tokenDoc);
+    if (!tokenDoc.object?.visible) {
+        ui.notifications.warn('COMBAT.PingInvisibleToken', { localize: true });
+        return;
+    }
+
+    tokenDoc.object.setTarget(!isTargeted, { releaseOthers: !event?.shiftKey });
+}
+
+async function _onPingCombatant(minion: TokenDocumentPF2e) {
+    if (!canvas.ready || minion.scene?.id !== canvas.scene?.id) return;
+    if (!minion.object?.visible) return ui.notifications.warn(game.i18n.localize('COMBAT.PingInvisibleToken'));
+    await canvas.ping(minion.object.center, {});
 }

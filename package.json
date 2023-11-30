@@ -17,6 +17,8 @@
   "author": "Nhaaro",
   "license": "Unlicense",
   "devDependencies": {
+    "@pixi/graphics-smooth": "^1.1.0",
+    "@pixi/particle-emitter": "^5.0.8",
     "@types/fs-extra": "^11.0.1",
     "@types/gsap": "^3.0.0",
     "@types/handlebars": "^4.1.0",
@@ -35,6 +37,7 @@
     "gsap": "^3.12.2",
     "handlebars": "^4.7.7",
     "marked": "^5.1.0",
+    "pixi.js": "^7.2.4",
     "postcss-nested": "^6.0.1",
     "postcss-preset-env": "^9.0.0",
     "prettier": "2.8.8",
