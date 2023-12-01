@@ -302,6 +302,7 @@ async function _onCombatantControl(event: JQuery.ClickEvent<HTMLElement, undefin
     const control = event.currentTarget.dataset.control;
     const li = event.currentTarget.closest<HTMLLIElement>('.combatant[data-minion-id]');
     const minion = canvas.tokens.get(li?.dataset.minionId || '')!;
+    if (!minion) return;
 
     // Switch control action
     switch (control) {
