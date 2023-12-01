@@ -6,8 +6,8 @@ import { ConditionPF2e, ItemPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
 import { FlatModifierRuleElement } from '@module/rules/rule-element/flat-modifier.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
-import { MODULE_NAME } from 'src/constants.ts';
-import { isCharacterDocument, isConditionData, isConditionDocument, isSpellDocument } from 'src/lib/lib.ts';
+import { MODULE_NAME } from '../../constants.ts';
+import { isCharacterDocument, isConditionData, isConditionDocument, isSpellDocument } from '../utils.ts';
 
 type location = { x: number; y: number };
 type sourceData = {

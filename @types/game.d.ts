@@ -1,5 +1,4 @@
 import * as io from 'socket.io';
-import { SocketData } from 'src/module.ts';
 import { ActionData } from 'utils/socket/actions.ts';
 import { ClassDCData } from '@actor/character/data.js';
 

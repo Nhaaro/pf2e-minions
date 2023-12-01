@@ -1,4 +1,4 @@
-import { MODULE_NAME } from 'src/constants.ts';
+import { MODULE_NAME } from '../constants.ts';
 
 const moduleTemplates = {
     [MODULE_NAME]: {

@@ -75,7 +75,7 @@ const config = defineConfig(({ command, mode }) => {
         const message = 'This file is for a running vite dev server and is not copied to a build';
         fs.writeFileSync('./index.html', `<h1>${message}</h1>\n`);
         fs.writeFileSync(`./${MODULE_NAME}.css`, `/** ${message} */\n\n@import "./src/styles/module.css"`);
-        fs.writeFileSync(`./${MODULE_NAME}.mjs`, `/** ${message} */\n\nimport "./src/module.ts";\n`);
+        fs.writeFileSync(`./${MODULE_NAME}.mjs`, `/** ${message} */\n\nimport "./src/index.ts";\n`);
         fs.writeFileSync('./vendor.mjs', `/** ${message} */\n`);
     }
 
@@ -101,10 +101,10 @@ const config = defineConfig(({ command, mode }) => {
             outDir,
             emptyOutDir: true,
             sourcemap: buildMode === 'development',
-            minify: false,
+            minify: buildMode === 'production',
             lib: {
                 name: MODULE_NAME,
-                entry: 'src/module.ts',
+                entry: 'src/index.ts',
                 formats: ['es'],
                 fileName: MODULE_NAME,
             },
@@ -116,12 +116,12 @@ const config = defineConfig(({ command, mode }) => {
                         name === 'style.css' ? `${MODULE_NAME}.css` : name!,
                     chunkFileNames: '[name].mjs',
                     entryFileNames: `${MODULE_NAME}.mjs`,
-                    manualChunks: {
-                        vendor:
-                            buildMode === 'production' && 'dependencies' in packageJSON
-                                ? Object.keys(packageJSON.dependencies as object)
-                                : [],
-                    },
+                    manualChunks:
+                        buildMode === 'production' && 'dependencies' in packageJSON
+                            ? {
+                                  vendor: Object.keys(packageJSON.dependencies as object),
+                              }
+                            : undefined,
                 },
                 watch: { buildDelay: 100 },
             },

@@ -1,12 +1,7 @@
-import { MODULE_NAME } from 'src/constants.ts';
+import '../../utils/vite/hmr.ts';
+import '../styles/module.css';
 
-export const registerHooks = () => {
-    console.debug(`${MODULE_NAME} | registerHooks`);
-    import('./socket.ts');
-    import('./summons.ts');
-    import('./familiar.ts');
+import './hooks/index.ts';
 
-    import('./canvas.ts');
-
-    import('./encounter.ts');
-};
+import './minions/summons.ts';
+import './minions/familiar.ts';

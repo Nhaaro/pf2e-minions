@@ -1,7 +1,7 @@
 import { ActorSourcePF2e } from '@actor/data/index.js';
 import { ActorPF2e } from '@actor/index.js';
-import { MODULE_NAME } from 'src/constants.ts';
-import { isFamiliarData, isFamiliarDocument } from 'src/lib/lib.ts';
+import { MODULE_NAME } from '../../constants.ts';
+import { isFamiliarData, isFamiliarDocument } from '../utils.ts';
 
 Hooks.on('preUpdateActor', async (...args) => {
     const [document, changes] = args as [

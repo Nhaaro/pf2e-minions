@@ -1,5 +1,5 @@
-import { SOCKET_NAME } from 'src/constants.ts';
-import { handlers } from 'src/module/socket.ts';
+import { SOCKET_NAME } from '../../src/constants.ts';
+import { handlers } from '../../src/module/socket.ts';
 
 export function dispatch<T extends string = string, P = void>(data: ActionData<T, P>) {
     const handler = handlers.get(data.type);

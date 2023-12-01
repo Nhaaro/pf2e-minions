@@ -1,9 +1,8 @@
 import { CombatantPF2e } from '@module/encounter/combatant.js';
-import { MODULE_NAME } from 'src/constants.ts';
-import { createMinionsMessage } from './chat.ts';
+import { MODULE_NAME } from '../../constants.ts';
 import { EncounterTrackerPF2e } from '@module/apps/sidebar/encounter-tracker.js';
 import { EncounterPF2e } from '@module/encounter/document.js';
-import { TEMPLATES } from 'src/scripts/register-templates.ts';
+import { TEMPLATES } from '../../scripts/register-templates.ts';
 import { TokenDocumentPF2e } from '@scene/index.js';
 import {
     createHTMLElement,
@@ -12,16 +11,6 @@ import {
     htmlQueryAll,
     localizeList,
 } from 'src/system/src/util/index.ts';
-import { TokenPF2e } from '@module/canvas/index.js';
-
-Hooks.on('pf2e.startTurn', async (...args) => {
-    const combatant = args[0] as CombatantPF2e;
-    if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
-    console.debug(`${MODULE_NAME} | pf2e.startTurn`, ...args);
-
-    const minions = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-    if (minions.length > 0) createMinionsMessage(combatant, minions);
-});
 
 Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
     const [document, $html, data] = args as [
@@ -32,6 +21,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
     if (!document.viewed || !canvas.ready) return;
     console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e`, ...args);
 
+    //TODO: simplify things, use game.combats.viewed
     for (const combat of document.combats) {
         for (const combatant of combat.combatants) {
             const uuids = (combatant.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
@@ -129,6 +119,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 }
             }
 
+            // const minionRows = htmlQueryAll(tracker, "li.combatant");
             for (const minionRow of $minionsList.find<HTMLLIElement>('li.combatant')) {
                 const minion = canvas.tokens.get(minionRow.dataset.minionId!);
 
@@ -182,39 +173,6 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
 
     console.groupEnd();
 });
-Hooks.on('targetToken', (...args) => {
-    const [, token] = args;
-    if (!token.document?.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | createToken`, ...args);
-
-    // const master = (await fromUuid(`Actor.${token.document.flags[MODULE_NAME].master}`)) as ActorPF2e;
-    const master = game.actors.get(token.document.getFlag(MODULE_NAME, 'master') as string);
-    const combatant = game.combat?.combatants.get(master?.combatant?.id || '');
-    if (!master || !combatant || !token) {
-        console.groupEnd();
-        return;
-    }
-
-    refreshTargetDisplay.call(
-        game.combats.apps[0] as EncounterTrackerPF2e<EncounterPF2e>,
-        combatant,
-        (token as TokenPF2e).document
-    );
-    console.groupEnd();
-});
-Hooks.on('hoverToken', (...args) => {
-    const [token, hovered] = args as [token: TokenPF2e, boolean];
-    if (!token.document?.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | hoverToken`, ...args);
-
-    const tracker = $('[id=combat-tracker ]');
-    const minionRow = tracker.find(`.combatant[data-minion-id=${token.id}]`);
-
-    if (hovered) minionRow.addClass('hover');
-    else minionRow.removeClass('hover');
-
-    console.groupEnd();
-});
 
 function combatantAndTokenDoc(document: CombatantPF2e | TokenDocumentPF2e): {
     combatant: CombatantPF2e | null;
@@ -226,7 +184,7 @@ function combatantAndTokenDoc(document: CombatantPF2e | TokenDocumentPF2e): {
 }
 
 /** Refresh the list of users targeting a combatant's token as well as the active state of the target toggle */
-function refreshTargetDisplay(
+export function refreshTargetDisplay(
     this: EncounterTrackerPF2e<EncounterPF2e>,
     combatantOrToken: CombatantPF2e | TokenDocumentPF2e,
     minionDoc: TokenDocumentPF2e
