@@ -2,14 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "rootDir": ".",
-    "target": "ES2022",
+    "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "NodeNext",
+    "module": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Bundler",
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true, //Do I need this?
     "resolveJsonModule": true,
@@ -50,6 +50,7 @@
     "types": ["jquery", "node"],
     "typeRoots": ["node_modules/@types", "node_modules/handlebars"]
   },
+  "include": ["src", "types", "scripts", "utils"],
   "watchOptions": {
     "excludeDirectories": ["packs/data/", "static/packs/"]
   }
