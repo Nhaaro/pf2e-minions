@@ -2,17 +2,21 @@ import { ActorPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { ChatMessagePF2e } from '@module/chat-message/document.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
-import { MODULE_NAME } from '../constants.ts';
-import { TEMPLATES } from '../scripts/register-templates.ts';
-import { htmlClosest, sluggify } from '../system/src/util/index.ts';
+import { MODULE_NAME } from '../../constants.ts';
+import { TEMPLATES } from '../../scripts/register-templates.ts';
+import { htmlClosest, sluggify } from '../../system/src/util/index.ts';
 import { createAction, dispatch } from 'utils/socket/actions.ts';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
     if (!message.flags[MODULE_NAME] || !$html[0]) return;
+    console.group(`${MODULE_NAME} | renderChatMessage`, ...args);
+
     const html = $html[0];
 
+    console.debug(MODULE_NAME,'finding rows...')
     html.querySelectorAll<HTMLLIElement>('.minion-row').forEach(element => {
+        console.group('Attaching listeners', element)
         /** Highlight the minion's corresponding token on the canvas */
         element.addEventListener('mouseenter', hoverHandler);
         /** Remove the token highlight */
@@ -36,6 +40,7 @@ Hooks.on('renderChatMessage', async (...args) => {
             const minionToken = canvas.tokens.get(minionId);
             !minionToken?.controlled && minionToken?.control({ releaseOthers: !nativeEvent.shiftKey });
         });
+        console.groupEnd()
     });
 
     async function hoverHandler(this: HTMLLIElement, nativeEvent: MouseEvent | PointerEvent) {
@@ -69,6 +74,8 @@ Hooks.on('renderChatMessage', async (...args) => {
             canvas.animatePan({ ...token.center, scale, duration: 1000 });
         }
     }
+
+    console.groupEnd()
 });
 
 export const updateMinionsCardAction = createAction(
