@@ -30,11 +30,11 @@ Hooks.on('preUpdateActor', async (...args) => {
         tokenFlags.master = newMaster.id;
 
         const minionsUuid = (newMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        document.getActiveTokens().forEach(token => {
+        document.getActiveTokens().forEach(async token => {
             console.debug(`${MODULE_NAME} | Cascading new master changes`, token.document.uuid, token.document);
-            token.document.setFlag(MODULE_NAME, 'master', newMaster.id);
+            await token.document.setFlag(MODULE_NAME, 'master', newMaster.id);
             if (!minionsUuid.find(uuid => uuid === token.document.uuid))
-                newMaster.setFlag(MODULE_NAME, 'minions', [...minionsUuid, token.document.uuid]);
+                await newMaster.setFlag(MODULE_NAME, 'minions', [...minionsUuid, token.document.uuid]);
         });
         console.groupEnd();
     }
@@ -42,9 +42,9 @@ Hooks.on('preUpdateActor', async (...args) => {
     if (oldMaster) {
         console.group(`${MODULE_NAME} | Removing old master data`);
         const minionsUuid = (oldMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        document.getActiveTokens().forEach(token => {
+        document.getActiveTokens().forEach(async token => {
             console.debug(`${MODULE_NAME} | Cascading old master changes`, token.document.uuid, token.document);
-            oldMaster.setFlag(
+            await oldMaster.setFlag(
                 MODULE_NAME,
                 'minions',
                 minionsUuid.filter(uuid => uuid != token.document.uuid)

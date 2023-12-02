@@ -135,9 +135,10 @@ async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<Condi
             const [, , , id] = uuid.split('.');
             const minion = canvas.tokens.get(id);
 
-            minion.actor?.setFlag(MODULE_NAME, 'spellDC', document.actor?.system.attributes.spellDC);
             if (!(minion?.document?.getFlag(MODULE_NAME, 'type') === 'sustained')) return;
             console.debug(`${MODULE_NAME} | Minion`, uuid, minion, minion.document.flags[MODULE_NAME]);
+
+            await minion.actor?.setFlag(MODULE_NAME, 'spellDC', document.actor?.system.attributes.spellDC);
         });
         console.groupEnd();
     }

@@ -28,7 +28,7 @@ Hooks.on('deleteToken', async (...args) => {
     const master = game.actors.get(document.getFlag(MODULE_NAME, 'master') as string);
     if (master) {
         const minionsUuid = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        master.setFlag(
+        await master.setFlag(
             MODULE_NAME,
             'minions',
             minionsUuid
