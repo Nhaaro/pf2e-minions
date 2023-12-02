@@ -24,18 +24,18 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
     //TODO: simplify things, use game.combats.viewed
     for (const combat of document.combats) {
         for (const combatant of combat.combatants) {
-            const uuids = (combatant.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-            if (!uuids.length) continue;
+            const minionsUuid = (combatant.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+            if (!minionsUuid.length) continue;
 
             console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e | combatant`, combatant, combat);
             const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id=${combatant.id}]`);
             const masterRow = $masterRow[0];
 
             let minions = await Promise.all(
-                uuids.map(async uuid => {
+                minionsUuid.map(async uuid => {
                     const [, sceneId, , id] = uuid.split('.');
 
-                    const minion = await fromUuid<TokenDocumentPF2e>(uuid);
+                    const minion = canvas.tokens.get(id);
                     if (!minion) return;
 
                     // Prepare template data
@@ -52,11 +52,11 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                     const templateData: Record<string, any> = {
                         id: id,
                         name: minion.name,
-                        img: minion.texture.src,
+                        img: minion.document.texture.src,
                         // active: i === combat.turn,
                         owner: minion.isOwner,
                         // defeated: combatant.isDefeated,
-                        hidden: minion.hidden,
+                        hidden: minion.document.hidden,
                         hasResource: resource !== null,
                         resource: resource,
                         canPing:
@@ -74,8 +74,8 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                     // Actor and Token status effects
                     templateData.effects = new Set();
                     if (minion) {
-                        minion.effects.forEach(e => templateData.effects.add(e));
-                        if (minion.overlayEffect) templateData.effects.add(minion.overlayEffect);
+                        minion.document.effects.forEach(e => templateData.effects.add(e));
+                        if (minion.document.overlayEffect) templateData.effects.add(minion.document.overlayEffect);
                     }
                     if (minion.actor) {
                         for (const effect of minion.actor.temporaryEffects) {

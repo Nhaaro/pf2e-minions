@@ -40,9 +40,7 @@ Hooks.on('fs-preSummon', async (...args) => {
     console.group(`${MODULE_NAME} | fs-preSummon`, ...args);
 
     const item = sourceData?.flags?.item;
-    const master = (await fromUuid(`Actor.${sourceData?.summonerTokenDocument?.actorId}`)) as ActorPF2e<
-        TokenDocumentPF2e<ScenePF2e>
-    >;
+    const master = game.actors.get(sourceData.summonerTokenDocument.actorId || '');
 
     if (!master) {
         console.warn(`${MODULE_NAME} | Minions can only be tracked with a master`);
@@ -131,14 +129,15 @@ async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<Condi
             ? change?.system?.value?.value
             : true
     ) {
-        const minions = (document.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        console.group(`${MODULE_NAME} | Cascading master changes`, minions);
-        minions.forEach(async uuid => {
-            const minion = await fromUuid<TokenDocumentPF2e>(uuid);
-            if (!(minion?.getFlag(MODULE_NAME, 'type') === 'sustained')) return;
-            console.debug(`${MODULE_NAME} | Minion`, uuid, minion, minion.flags[MODULE_NAME]);
+        const minionsUuid = (document.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        console.group(`${MODULE_NAME} | Cascading master changes`, minionsUuid);
+        minionsUuid.forEach(async uuid => {
+            const [, , , id] = uuid.split('.');
+            const minion = canvas.tokens.get(id);
 
             minion.actor?.setFlag(MODULE_NAME, 'spellDC', document.actor?.system.attributes.spellDC);
+            if (!(minion?.document?.getFlag(MODULE_NAME, 'type') === 'sustained')) return;
+            console.debug(`${MODULE_NAME} | Minion`, uuid, minion, minion.document.flags[MODULE_NAME]);
         });
         console.groupEnd();
     }

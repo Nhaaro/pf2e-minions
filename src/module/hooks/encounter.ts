@@ -7,8 +7,8 @@ Hooks.on('pf2e.startTurn', async (...args) => {
     if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
     console.debug(`${MODULE_NAME} | pf2e.startTurn`, ...args);
 
-    const minions = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-    if (minions.length > 0) createMinionsMessage(combatant, minions);
+    const minionsUuid = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+    if (minionsUuid.length > 0) createMinionsMessage(combatant, minionsUuid);
 });
 
 Hooks.on('pf2e.endTurn', async (...args) => {

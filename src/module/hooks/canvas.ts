@@ -1,4 +1,3 @@
-import { ActorPF2e } from '@actor/index.js';
 import { TokenDocumentPF2e } from '@scene/index.js';
 import { MODULE_NAME } from '../../constants.ts';
 import { refreshTargetDisplay } from './combat-tracker.ts';
@@ -11,12 +10,12 @@ Hooks.on('createToken', async (...args) => {
     if (!document.flags[MODULE_NAME]?.master) return;
     console.group(`${MODULE_NAME} | createToken`, ...args);
 
-    const master = (await fromUuid(`Actor.${document.flags[MODULE_NAME].master}`)) as ActorPF2e;
+    const master = game.actors.get(document.getFlag(MODULE_NAME, 'master') as string);
     if (master) {
-        const minions = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
         console.debug(`${MODULE_NAME} | Adding minion to master`, document.uuid, document);
-        if (!minions.find(uuid => uuid === document.uuid))
-            master.setFlag(MODULE_NAME, 'minions', [...minions, document.uuid]);
+        if (!minionsUuid.find(uuid => uuid === document.uuid))
+            await master.setFlag(MODULE_NAME, 'minions', [...minionsUuid, document.uuid]);
     }
     console.groupEnd();
 });
@@ -26,13 +25,13 @@ Hooks.on('deleteToken', async (...args) => {
     if (!document.flags[MODULE_NAME]?.master) return;
     console.group(`${MODULE_NAME} | deleteToken`, ...args);
 
-    const master = (await fromUuid(`Actor.${document.flags[MODULE_NAME].master}`)) as ActorPF2e;
+    const master = game.actors.get(document.getFlag(MODULE_NAME, 'master') as string);
     if (master) {
-        const minions = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
         master.setFlag(
             MODULE_NAME,
             'minions',
-            minions
+            minionsUuid
                 .filter(uuid => uuid != document.uuid)
                 .filter(uuid => {
                     const [, scene, , id] = uuid.split('.');
@@ -49,7 +48,6 @@ Hooks.on('targetToken', (...args) => {
     if (!token.document?.flags[MODULE_NAME]?.master) return;
     console.group(`${MODULE_NAME} | createToken`, ...args);
 
-    // const master = (await fromUuid(`Actor.${token.document.flags[MODULE_NAME].master}`)) as ActorPF2e;
     const master = game.actors.get(token.document.getFlag(MODULE_NAME, 'master') as string);
     const combatant = game.combat?.combatants.get(master?.combatant?.id || '');
     if (!master || !combatant || !token) {

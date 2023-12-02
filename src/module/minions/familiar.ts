@@ -24,30 +24,30 @@ Hooks.on('preUpdateActor', async (...args) => {
     console.debug(`${MODULE_NAME} | tokenFlags`, document.prototypeToken?.flags[MODULE_NAME], tokenFlags);
     tokenFlags.type ??= 'familiar';
 
-    const newMaster = (await fromUuid(`Actor.${changes.system.master.id}`)) as ActorPF2e;
+    const newMaster = game.actors.get(changes.system.master.id);
     if (newMaster) {
         console.group(`${MODULE_NAME} | Adding new master data`);
         tokenFlags.master = newMaster.id;
 
-        const minions = (newMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (newMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(token => {
             console.debug(`${MODULE_NAME} | Cascading new master changes`, token.document.uuid, token.document);
             token.document.setFlag(MODULE_NAME, 'master', newMaster.id);
-            if (!minions.find(uuid => uuid === token.document.uuid))
-                newMaster.setFlag(MODULE_NAME, 'minions', [...minions, token.document.uuid]);
+            if (!minionsUuid.find(uuid => uuid === token.document.uuid))
+                newMaster.setFlag(MODULE_NAME, 'minions', [...minionsUuid, token.document.uuid]);
         });
         console.groupEnd();
     }
-    const oldMaster = (await fromUuid(`Actor.${document.system.master.id}`)) as ActorPF2e;
+    const oldMaster = game.actors.get(document.system.master.id || '');
     if (oldMaster) {
         console.group(`${MODULE_NAME} | Removing old master data`);
-        const minions = (newMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (oldMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(token => {
             console.debug(`${MODULE_NAME} | Cascading old master changes`, token.document.uuid, token.document);
             oldMaster.setFlag(
                 MODULE_NAME,
                 'minions',
-                minions.filter(uuid => uuid != token.document.uuid)
+                minionsUuid.filter(uuid => uuid != token.document.uuid)
             );
         });
         console.groupEnd();

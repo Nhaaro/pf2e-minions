@@ -179,6 +179,7 @@ export const updateMinionsCardAction = createAction(
         }
 
         actionsWrapper?.remove();
-        message?.update({ content: content.outerHTML });
+        await minionToken.document.setFlag(MODULE_NAME, 'commanded', true);
+        await message?.update({ content: content.outerHTML });
     }
 );
