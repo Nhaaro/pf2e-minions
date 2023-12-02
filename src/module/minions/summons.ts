@@ -85,7 +85,7 @@ Hooks.on('createItem', async (...args) => {
     // for some reason type differs from what shows up in console
     const [document] = args as [document: ItemPF2e, options: object, userId: string];
     if (!isConditionDocument(document)) return;
-    console.group(`${MODULE_NAME} | preCreateItem`, ...args);
+    console.group(`${MODULE_NAME} | createItem`, ...args);
 
     await updateSpellDC(document);
 
@@ -99,7 +99,7 @@ Hooks.on('updateItem', async (...args) => {
         userId: string
     ];
     if (!(isConditionDocument(document) && isConditionData(document, change))) return;
-    console.group(`${MODULE_NAME} | preUpdateItem`, ...args);
+    console.group(`${MODULE_NAME} | updateItem`, ...args);
 
     await updateSpellDC(document, change);
 
@@ -108,7 +108,7 @@ Hooks.on('updateItem', async (...args) => {
 Hooks.on('deleteItem', async (...args) => {
     const [document] = args as [document: ItemPF2e, options: object, userId: string];
     if (!isConditionDocument(document)) return;
-    console.group(`${MODULE_NAME} | preDeleteItem`, ...args);
+    console.group(`${MODULE_NAME} | deleteItem`, ...args);
 
     await updateSpellDC(document);
 

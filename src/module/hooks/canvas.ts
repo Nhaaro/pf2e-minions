@@ -46,7 +46,7 @@ Hooks.on('deleteToken', async (...args) => {
 Hooks.on('targetToken', (...args) => {
     const [, token] = args;
     if (!token.document?.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | createToken`, ...args);
+    console.group(`${MODULE_NAME} | targetToken`, ...args);
 
     const master = game.actors.get(token.document.getFlag(MODULE_NAME, 'master') as string);
     const combatant = game.combat?.combatants.get(master?.combatant?.id || '');

@@ -5,16 +5,17 @@ import { TEMPLATES } from '../../scripts/register-templates.ts';
 Hooks.on('pf2e.startTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
     if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
-    console.debug(`${MODULE_NAME} | pf2e.startTurn`, ...args);
+    console.group(`${MODULE_NAME} | pf2e.startTurn`, ...args);
 
     const minionsUuid = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-    if (minionsUuid.length > 0) createMinionsMessage(combatant, minionsUuid);
+    if (minionsUuid.length > 0) await createMinionsCard(combatant, minionsUuid);
+    console.groupEnd();
 });
 
 Hooks.on('pf2e.endTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
     if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
-    console.debug(`${MODULE_NAME} | pf2e.endTurn`, ...args);
+    console.group(`${MODULE_NAME} | pf2e.endTurn`, ...args);
 
     const minionsUuid = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
     for (const uuid of minionsUuid) {
@@ -36,7 +37,7 @@ Hooks.on('pf2e.endTurn', async (...args) => {
     console.groupEnd();
 });
 
-export async function createMinionsMessage(combatant: CombatantPF2e, uuids: string[]): Promise<Maybe<ChatMessage>> {
+export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[]): Promise<Maybe<ChatMessage>> {
     if (!combatant.token?.actor) return null;
     const { token } = combatant;
 

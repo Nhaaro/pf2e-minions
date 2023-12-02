@@ -27,7 +27,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             const minionsUuid = (combatant.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
             if (!minionsUuid.length) continue;
 
-            console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e | combatant`, combatant, combat);
+            console.group(`${MODULE_NAME} | combatant`, combatant, combat);
             const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id="${combatant.id}"]`);
             const masterRow = $masterRow[0];
 
