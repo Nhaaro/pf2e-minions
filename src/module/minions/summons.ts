@@ -62,6 +62,7 @@ Hooks.on('fs-preSummon', async (...args) => {
     console.debug(`${MODULE_NAME} | module flags`, { tokenFlags, actorFlags });
     tokenFlags.master = master.id;
     tokenFlags.item = item.sourceId;
+    tokenFlags.commanded = true;
 
     const creature = JSON.parse(sourceData.creatureActor.document) as CreaturePF2e;
     if (isCharacterDocument(creature) && creature.class?.name === 'Eidolon') tokenFlags.type = 'eidolon';
