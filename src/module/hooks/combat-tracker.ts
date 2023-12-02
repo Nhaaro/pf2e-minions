@@ -28,7 +28,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             if (!minionsUuid.length) continue;
 
             console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e | combatant`, combatant, combat);
-            const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id=${combatant.id}]`);
+            const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id="${combatant.id}"]`);
             const masterRow = $masterRow[0];
 
             let minions = await Promise.all(
@@ -94,7 +94,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 master: combatant.id,
             });
             $masterRow.after(rows);
-            const $minionsList = $masterRow.siblings(`ul[data-combatant-id=${combatant.id}]`);
+            const $minionsList = $masterRow.siblings(`ul[data-combatant-id="${combatant.id}"]`);
             const minionsList = $minionsList[0] as unknown as HTMLUListElement;
 
             const allyColor = (c: CombatantPF2e<EncounterPF2e>) =>
@@ -201,7 +201,7 @@ export function refreshTargetDisplay(
         if (!combatantRow) return;
         const minionRow = htmlQuery(
             combatantRow.parentElement,
-            `ul[data-combatant-id="${combatant?.id ?? null}"] li.combatant[data-minion-id=${minionDoc.id}]`
+            `ul[data-combatant-id="${combatant?.id ?? null}"] li.combatant[data-minion-id="${minionDoc.id}"]`
         );
         if (!minionRow) return;
 
