@@ -14,6 +14,10 @@
       "Sustain": {
         "Description": "<p>{spellCompendium}'s duration extends until the end of your next turn. (Sustaining more than once in the same turn doesn't extend the duration to subsequent turns.) It can be sustained up to {duration}.</p>\n<hr /><p>Immediately when you finish casting, the summoned creature uses its 2 actions for that turn. Summoned creatures can be banished by various spells and effects. They are automatically banished if reduced to 0 Hit Points or if the spell that called them ends (such as being disrupted).</p>",
         "Title": "Sustain {name}"
+      },
+      "NotSustained": {
+        "Description": "<p>Summoned creatures are automatically banished if the spell that called them ends (such as not being sustained before the end of your turn).</p>",
+        "Title": "{name} was not sustained"
       }
     }
   }

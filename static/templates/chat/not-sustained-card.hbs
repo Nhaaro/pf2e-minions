@@ -1,0 +1,38 @@
+<div
+    class="pf2e chat-card action-card"
+    data-master-id="{{master.id}}"
+    data-actor-id="{{actor.id}}"
+    data-item-id="{{item.id}}"
+    data-token-id="{{token.id}}"
+>
+    <header class="card-header flexrow">
+        <img src="{{item.img}}" alt="{{item.name}}" />
+        <h3>{{item.name}}{{#if item.actionCost}} {{{actionGlyph item.actionCost}}}{{/if}}</h3>
+    </header>
+
+    <div class="tags paizo-style" data-tooltip-class="pf2e">
+        {{#each data.traits as |trait|}}
+            {{#unless trait.mystified}}
+                <span class="tag" data-trait="{{trait.name}}" data-tooltip="{{trait.description}}">{{localize
+                        trait.label
+                    }}</span>
+            {{/unless}}
+        {{/each}}
+    </div>
+
+    {{#if (or data.traits item.description)}}<hr />{{/if}}
+
+    {{#if item.description}}
+        <div class="card-content">
+            {{{item.description}}}
+        </div>
+    {{/if}}
+
+    {{#if data.properties}}
+        <footer class="card-footer">
+            {{#each data.properties}}
+                <span>{{localize this}}</span>
+            {{/each}}
+        </footer>
+    {{/if}}
+</div>

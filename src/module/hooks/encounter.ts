@@ -1,6 +1,10 @@
 import { CombatantPF2e, EncounterPF2e } from '@module/encounter/index.js';
 import { MODULE_NAME } from '../../constants.ts';
 import { TEMPLATES } from '../../scripts/register-templates.ts';
+import { TokenPF2e } from '@module/canvas/index.js';
+import { ItemPF2e } from '@item/index.js';
+import { transformTraits } from '../utils.ts';
+import { ItemTrait } from '@item/base/data/system.js';
 
 Hooks.on('pf2e.startTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
@@ -30,6 +34,7 @@ Hooks.on('pf2e.endTurn', async (...args) => {
 
         const flags = minionToken.document.flags[MODULE_NAME];
         if (flags?.type === 'sustained' && !flags.commanded) {
+            await createNotSustainedCard(combatant, minionToken);
             await window?.warpgate?.dismiss(minionToken.id);
         }
     }
@@ -84,4 +89,55 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
     if (isNPCEvent) messageSource.whisper = ChatMessage.getWhisperRecipients('GM').map(u => u.id);
 
     return await ChatMessage.create(messageSource);
+}
+
+async function createNotSustainedCard(combatant: CombatantPF2e, minionToken: TokenPF2e) {
+    if (!combatant.token?.actor) return null;
+    const { token: masterToken } = combatant;
+
+    let item = await fromUuid<ItemPF2e>(minionToken.document.getFlag(MODULE_NAME, 'item') as string);
+    if (!item) {
+        console.error(`${MODULE_NAME} | No item found`, minionToken.document);
+        return;
+    }
+
+    item.system.traits.value;
+    const template = TEMPLATES[MODULE_NAME].chat.card.notSustained;
+    const templateData = {
+        master: masterToken.actorId,
+        actor: minionToken.actor,
+        token: minionToken.document.toObject(),
+        item: {
+            id: item.id,
+            img: item.img,
+            name: game.i18n.format(`${MODULE_NAME}.Actions.NotSustained.Title`, { name: item.name }),
+            description: game.i18n.format(`${MODULE_NAME}.Actions.NotSustained.Description`),
+        },
+        data: {
+            traits: minionToken.actor?.system.traits?.value
+                ? transformTraits(minionToken.actor.system.traits.value as ItemTrait[])
+                : [],
+            properties: [game.i18n.format(`${MODULE_NAME}.Minions`, { name: masterToken.name }), item.name],
+        },
+    };
+    const chatData: Partial<foundry.documents.ChatMessageSource> = {
+        // user: game.user.id,
+        speaker: ChatMessage.getSpeaker({ token: minionToken.document, actor: minionToken.actor }),
+        flags: {
+            pf2e: {
+                origin: item.getOriginData(),
+            },
+            [MODULE_NAME]: {
+                type: 'not-sustained-card',
+                masterId: masterToken.actor?.id,
+                minionId: minionToken.id,
+            },
+        },
+        type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    };
+    chatData.content = await renderTemplate(template, templateData);
+    const isNPCEvent = !masterToken.actor?.hasPlayerOwner;
+    if (isNPCEvent) chatData.whisper = ChatMessage.getWhisperRecipients('GM').map(u => u.id);
+
+    return await ChatMessage.create(chatData);
 }

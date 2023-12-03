@@ -8,6 +8,11 @@ const moduleTemplates = {
                 minions: `modules/${MODULE_NAME}/templates/sidebar/combat-tracker/minions.hbs`,
             },
         },
+        chat: {
+            card: {
+                notSustained: `modules/${MODULE_NAME}/templates/chat/not-sustained-card.hbs`,
+            },
+        },
     },
 };
 const systemTemplates = {

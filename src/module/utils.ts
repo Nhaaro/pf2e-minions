@@ -1,6 +1,7 @@
 import { ActorSourcePF2e, CharacterSource, FamiliarSource } from '@actor/data/index.js';
 import { ActorPF2e, CharacterPF2e, FamiliarPF2e } from '@actor/index.js';
 import { AbilityItemSource, ConditionSource, ItemSourcePF2e, SpellSource } from '@item/base/data/index.js';
+import { ItemTrait } from '@item/base/data/system';
 import { AbilityItemPF2e, ConditionPF2e, ItemPF2e, SpellPF2e } from '@item/index.js';
 
 const actorTypes = ['character', 'npc', 'hazard', 'loot', 'familiar', 'vehicle'];
@@ -33,6 +34,7 @@ const itemTypes = [
 
 type CompendiumSource = CompendiumDocument['_source'];
 
+//#region Document Type Guards
 // Generics
 export const isActorData = (docSource: CompendiumSource): docSource is ActorSourcePF2e => {
     return 'type' in docSource && actorTypes.includes(docSource.type);
@@ -85,4 +87,20 @@ export function isSpellDocument(document: ItemPF2e): document is SpellPF2e {
 }
 export function isSpellData(document: ItemPF2e, _data: DeepPartial<ItemSourcePF2e>): _data is DeepPartial<SpellSource> {
     return document.type === 'spell';
+}
+//#endregion Document Type Guards
+
+export function transformTraits(traits: ItemTrait[]) {
+    return traits
+        .map(trait => {
+            const label = game.i18n.localize(trait);
+            const traitDescriptions: Record<string, string | undefined> = CONFIG.PF2E.traitsDescriptions;
+
+            return {
+                value: trait,
+                label,
+                description: traitDescriptions[trait],
+            };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
 }
