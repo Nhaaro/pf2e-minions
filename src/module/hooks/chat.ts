@@ -9,14 +9,14 @@ import { createAction, dispatch } from 'utils/socket/actions.ts';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
-    if (!message.flags[MODULE_NAME] || !$html[0]) return;
+    if (message.getFlag(MODULE_NAME, 'type') !== 'minions-card' || !$html[0]) return;
     console.group(`${MODULE_NAME} | renderChatMessage`, ...args);
 
     const html = $html[0];
 
-    console.debug(MODULE_NAME,'finding rows...')
+    console.debug(MODULE_NAME, 'finding rows...');
     html.querySelectorAll<HTMLLIElement>('.minion-row').forEach(element => {
-        console.group('Attaching listeners', element)
+        console.group('Attaching listeners', element);
         /** Highlight the minion's corresponding token on the canvas */
         element.addEventListener('mouseenter', hoverHandler);
         /** Remove the token highlight */
@@ -40,7 +40,7 @@ Hooks.on('renderChatMessage', async (...args) => {
             const minionToken = canvas.tokens.get(minionId);
             !minionToken?.controlled && minionToken?.control({ releaseOthers: !nativeEvent.shiftKey });
         });
-        console.groupEnd()
+        console.groupEnd();
     });
 
     async function hoverHandler(this: HTMLLIElement, nativeEvent: MouseEvent | PointerEvent) {
@@ -75,7 +75,7 @@ Hooks.on('renderChatMessage', async (...args) => {
         }
     }
 
-    console.groupEnd()
+    console.groupEnd();
 });
 
 export const updateMinionsCardAction = createAction(

@@ -71,10 +71,7 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
     const content = await renderTemplate(TEMPLATES['pf2e-minions'].minions, { minions, master: token.uuid });
     const messageSource: Partial<foundry.documents.ChatMessageSource> = {
         user: game.user.id,
-        speaker: {
-            ...ChatMessage.getSpeaker({ token, actor: token.actor }),
-            alias: game.i18n.format(`${MODULE_NAME}.Minions`, { name: token.name }),
-        },
+        speaker: ChatMessage.getSpeaker({ token, actor: token.actor }),
         content,
         type: CONST.CHAT_MESSAGE_TYPES.OTHER,
         flags: {
