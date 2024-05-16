@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { MODULE_NAME } from '~constants';
+import { MODULE_NAME, PACKAGE_ID } from '~constants';
 
 export enum VERBOSITY {
     'ZERO' = 0,
@@ -23,14 +23,14 @@ export function generateChoices(): { [key: number]: string } {
     // Add entries from the VERBOSITY enum
     for (const [level, value] of Object.entries(VERBOSITY)) {
         if (typeof value === 'number' && ![VERBOSITY.ALWAYS, VERBOSITY.CRITICAL].includes(value)) {
-            choices[value] = game.i18n.localize(`${MODULE_NAME}.Settings.Verbosity.Choices.${level}`);
+            choices[value] = game.i18n.localize(`${PACKAGE_ID}.Settings.Verbosity.Choices.${level}`);
         }
     }
 
     // Add entries from the VERBOSITY_ALIASES_MAP
     for (const [alias, value] of Object.entries(VERBOSITY_ALIASES_MAP)) {
         if (typeof value === 'number') {
-            choices[value] = game.i18n.localize(`${MODULE_NAME}.Settings.Verbosity.Choices.${alias}`);
+            choices[value] = game.i18n.localize(`${PACKAGE_ID}.Settings.Verbosity.Choices.${alias}`);
         }
     }
     return choices;
@@ -137,12 +137,13 @@ export class Logger {
             if (!force && CURRENT_VERBOSITY !== undefined && CURRENT_VERBOSITY !== null) return;
 
             // Grab verbosity from settings
-            const value = game.settings.get(MODULE_NAME, 'log-verbosity') as number;
+            const value = game.settings.get(PACKAGE_ID, 'log-verbosity') as number;
 
             // We do nothing if the setting is null/undefined
             if (value === undefined || value === null) return;
 
             // Use try-catch in case something goes wrong, as this method runs in critical code paths...
+            console.debug(Logger.prefix(), 'setting verbosity level to', value);
             this.verbosity = value;
         } catch (e) {
             console.error(Logger.prefix(), `Unable to set logging verbosity.\n`, e);
