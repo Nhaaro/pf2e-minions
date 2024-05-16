@@ -17,14 +17,13 @@ Hooks.once('init', async function () {
         choices: generateChoices(),
         scope: 'client',
         config: true,
-        onChange: () => {
-            try {
-                Logger.init(true);
-            } catch (e) {
-                console.error(e);
-            }
-        },
+        onChange: () => Logger.init(true),
     });
+
+    Log.always('Logger.init');
+    Logger.init(true);
+    (globalThis as any).Logger = Logger;
+    (globalThis as any).Log = Log;
 });
 
 Hooks.once('ready', async function () {

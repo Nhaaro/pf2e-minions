@@ -60,7 +60,7 @@ const VERBOSITY_LEVEL_MAP = {
     always: VERBOSITY.ALWAYS,
 };
 
-let CURRENT_VERBOSITY: number = VERBOSITY.WARNING; // Initialize the current verbosity
+let CURRENT_VERBOSITY: number | null = null; // Initialize the current verbosity
 
 export const Log: Record<keyof typeof VERBOSITY_LEVEL_MAP, (...args: any[]) => void> & {
     group: Console['group'];
@@ -145,7 +145,7 @@ export class Logger {
             if (value === undefined || value === null) return;
 
             // Use try-catch in case something goes wrong, as this method runs in critical code paths...
-            console.debug(Logger.prefix(), 'setting verbosity level to', value);
+            console.debug(Logger.prefix(), 'setting verbosity level from', CURRENT_VERBOSITY, 'to', value);
             this.verbosity = value;
         } catch (e) {
             console.error(Logger.prefix(), `Unable to set logging verbosity.\n`, e);
@@ -183,8 +183,6 @@ export class Logger {
 }
 
 generate_console_aliases();
-
-Logger.init(true);
 
 Object.seal(Logger);
 Object.seal(Log);
