@@ -1,4 +1,5 @@
-import { MODULE_NAME } from '../constants.ts';
+import { Log } from '~module/logger.ts';
+import { PACKAGE_ID } from '../constants.ts';
 
 declare global {
     interface Module {
@@ -14,25 +15,25 @@ globalThis.pf2eMinions.cleanUuids = async masterUuid => {
     else master = canvas.tokens.controlled.find(token => token.actor?.type === 'character')?.actor;
 
     if (!master) {
-        console.error(`${MODULE_NAME} | No master found`);
+        Log.error('No master found');
         return;
     }
 
-    const uuids = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+    const uuids = (master.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     let actors = await Promise.all(uuids.map(async uuid => await fromUuid(uuid)));
     const minions = actors.filter(minion => minion).map(minion => minion?.uuid);
-    await master.setFlag(MODULE_NAME, 'minions', minions);
+    await master.setFlag(PACKAGE_ID, 'minions', minions);
 };
 globalThis.pf2eMinions.linkMinion = async type => {
     const master = canvas.tokens.controlled[0];
     const minion = Array.from(game.user.targets)[0];
 
     if (!master) {
-        console.error('no token selected');
+        Log.error('no token selected');
         return;
     }
     if (!minion) {
-        console.error('no token targeted');
+        Log.error('no token targeted');
         return;
     }
 

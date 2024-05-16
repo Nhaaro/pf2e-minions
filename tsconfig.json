@@ -45,7 +45,11 @@
       "@module/*": ["types/system/src/module/*"],
       "@scripts/*": ["types/system/src/scripts/*"],
       "@util": ["types/system/src/util/index.ts"],
-      "@util/*": ["types/system/src/util/*"]
+      "@util/*": ["types/system/src/util/*"],
+
+      "~constants": ["src/constants.ts"],
+      "~module/*": ["src/module/*"],
+      "~lib/*": ["src/lib/*"]
     },
     "types": ["jquery", "node"],
     "typeRoots": ["node_modules/@types", "node_modules/handlebars"]

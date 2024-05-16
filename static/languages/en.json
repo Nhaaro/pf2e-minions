@@ -18,6 +18,20 @@
         "Description": "<p>Summoned creatures are automatically banished if the spell that called them ends (such as not being sustained before the end of your turn).</p>",
         "Title": "{name} was not sustained"
       }
+    },
+    "Settings": {
+      "Verbosity": {
+        "Name": "Verbosity",
+        "Hint": "The verbosity level of console messages",
+        "Choices": {
+          "ALL": "All",
+          "TRACE": "Trace",
+          "DEBUG": "Debug",
+          "INFO": "Information",
+          "WARN": "Warning",
+          "ERROR": "Error"
+        }
+      }
     }
   }
 }

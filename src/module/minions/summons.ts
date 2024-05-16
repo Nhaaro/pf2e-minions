@@ -6,8 +6,9 @@ import { ConditionPF2e, ItemPF2e } from '@item/index.js';
 import { MeasuredTemplatePF2e } from '@module/canvas/measured-template.js';
 import { FlatModifierRuleElement } from '@module/rules/rule-element/flat-modifier.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { isCharacterDocument, isConditionData, isConditionDocument, isSpellDocument } from '../utils.ts';
+import { Log } from '~module/logger.ts';
 
 type location = { x: number; y: number };
 type sourceData = {
@@ -37,27 +38,27 @@ Hooks.on('fs-preSummon', async (...args) => {
     ];
 
     if (!(sourceData.flags.item && sourceData.summonerTokenDocument)) return;
-    console.group(`${MODULE_NAME} | fs-preSummon`, ...args);
+    Log.group('fs-preSummon', ...args);
 
     const item = sourceData?.flags?.item;
     const master = game.actors.get(sourceData.summonerTokenDocument.actorId || '');
 
     if (!master) {
-        console.warn(`${MODULE_NAME} | Minions can only be tracked with a master`);
-        console.groupEnd();
+        Log.warn('Minions can only be tracked with a master');
+        Log.groupEnd();
         return;
     }
     if (!item) {
-        console.warn(`${MODULE_NAME} | Summons can only be tracked from spells or actions`);
-        console.groupEnd();
+        Log.warn('Summons can only be tracked from spells or actions');
+        Log.groupEnd();
         return;
     }
 
     if (updates.token.sight) updates.token.sight.enabled = true;
 
-    const tokenFlags = (updates.token.flags[MODULE_NAME] ??= {});
-    const actorFlags = (updates.actor.flags[MODULE_NAME] ??= {});
-    console.debug(`${MODULE_NAME} | module flags`, { tokenFlags, actorFlags });
+    const tokenFlags = (updates.token.flags[PACKAGE_ID] ??= {});
+    const actorFlags = (updates.actor.flags[PACKAGE_ID] ??= {});
+    Log.debug('module flags', { tokenFlags, actorFlags });
     tokenFlags.master = master.id;
     tokenFlags.item = item.sourceId;
     tokenFlags.commanded = true;
@@ -78,18 +79,18 @@ Hooks.on('fs-preSummon', async (...args) => {
         }
     }
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 Hooks.on('createItem', async (...args) => {
     // for some reason type differs from what shows up in console
     const [document] = args as [document: ItemPF2e, options: object, userId: string];
     if (!isConditionDocument(document)) return;
-    console.group(`${MODULE_NAME} | createItem`, ...args);
+    Log.group('createItem', ...args);
 
     await updateSpellDC(document);
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 Hooks.on('updateItem', async (...args) => {
     const [document, change] = args as [
@@ -99,26 +100,26 @@ Hooks.on('updateItem', async (...args) => {
         userId: string
     ];
     if (!(isConditionDocument(document) && isConditionData(document, change))) return;
-    console.group(`${MODULE_NAME} | updateItem`, ...args);
+    Log.group('updateItem', ...args);
 
     await updateSpellDC(document, change);
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 Hooks.on('deleteItem', async (...args) => {
     const [document] = args as [document: ItemPF2e, options: object, userId: string];
     if (!isConditionDocument(document)) return;
-    console.group(`${MODULE_NAME} | deleteItem`, ...args);
+    Log.group('deleteItem', ...args);
 
     await updateSpellDC(document);
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<ConditionSource>) {
     if (!game.user.isGM) return;
-    if (!document.actor?.getFlag(MODULE_NAME, 'minions')) {
-        console.info(`${MODULE_NAME} | No minions, skipping...`);
-        console.groupEnd();
+    if (!document.actor?.getFlag(PACKAGE_ID, 'minions')) {
+        Log.info('No minions, skipping...');
+        Log.groupEnd();
         return;
     }
 
@@ -129,17 +130,17 @@ async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<Condi
             ? change?.system?.value?.value
             : true
     ) {
-        const minionsUuid = (document.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        console.group(`${MODULE_NAME} | Cascading master changes`, minionsUuid);
+        const minionsUuid = (document.actor?.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
+        Log.group('Cascading master changes', minionsUuid);
         minionsUuid.forEach(async uuid => {
             const [, , , id] = uuid.split('.');
             const minion = canvas.tokens.get(id);
 
-            if (!(minion?.document?.getFlag(MODULE_NAME, 'type') === 'sustained')) return;
-            console.debug(`${MODULE_NAME} | Minion`, uuid, minion, minion.document.flags[MODULE_NAME]);
+            if (!(minion?.document?.getFlag(PACKAGE_ID, 'type') === 'sustained')) return;
+            Log.debug('Minion', uuid, minion, minion.document.flags[PACKAGE_ID]);
 
-            await minion.actor?.setFlag(MODULE_NAME, 'spellDC', document.actor?.system.attributes.spellDC);
+            await minion.actor?.setFlag(PACKAGE_ID, 'spellDC', document.actor?.system.attributes.spellDC);
         });
-        console.groupEnd();
+        Log.groupEnd();
     }
 }

@@ -1,35 +1,36 @@
 import { TokenDocumentPF2e } from '@scene/index.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { refreshTargetDisplay } from './combat-tracker.ts';
 import { TokenPF2e } from '@module/canvas/index.js';
 import { EncounterTrackerPF2e } from '@module/apps/sidebar/index.js';
 import { EncounterPF2e } from '@module/encounter/index.js';
+import { Log } from '~module/logger.ts';
 
 Hooks.on('createToken', async (...args) => {
     const [document] = args as [document: TokenDocumentPF2e, options: object, userId: string];
-    if (!document.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | createToken`, ...args);
+    if (!document.flags[PACKAGE_ID]?.master) return;
+    Log.group('createToken', ...args);
 
-    const master = game.actors.get(document.getFlag(MODULE_NAME, 'master') as string);
+    const master = game.actors.get(document.getFlag(PACKAGE_ID, 'master') as string);
     if (master) {
-        const minionsUuid = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
-        console.debug(`${MODULE_NAME} | Adding minion to master`, document.uuid, document);
+        const minionsUuid = (master.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
+        Log.debug('Adding minion to master', document.uuid, document);
         if (!minionsUuid.find(uuid => uuid === document.uuid))
-            await master.setFlag(MODULE_NAME, 'minions', [...minionsUuid, document.uuid]);
+            await master.setFlag(PACKAGE_ID, 'minions', [...minionsUuid, document.uuid]);
     }
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 Hooks.on('deleteToken', async (...args) => {
     const [document] = args as [document: TokenDocumentPF2e, options: object, userId: string];
-    if (!document.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | deleteToken`, ...args);
+    if (!document.flags[PACKAGE_ID]?.master) return;
+    Log.group('deleteToken', ...args);
 
-    const master = game.actors.get(document.getFlag(MODULE_NAME, 'master') as string);
+    const master = game.actors.get(document.getFlag(PACKAGE_ID, 'master') as string);
     if (master) {
-        const minionsUuid = (master.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (master.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
         await master.setFlag(
-            MODULE_NAME,
+            PACKAGE_ID,
             'minions',
             minionsUuid
                 .filter(uuid => uuid != document.uuid)
@@ -40,18 +41,18 @@ Hooks.on('deleteToken', async (...args) => {
                 })
         );
     }
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 Hooks.on('targetToken', (...args) => {
     const [, token] = args;
-    if (!token.document?.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | targetToken`, ...args);
+    if (!token.document?.flags[PACKAGE_ID]?.master) return;
+    Log.group('targetToken', ...args);
 
-    const master = game.actors.get(token.document.getFlag(MODULE_NAME, 'master') as string);
+    const master = game.actors.get(token.document.getFlag(PACKAGE_ID, 'master') as string);
     const combatant = game.combat?.combatants.get(master?.combatant?.id || '');
     if (!master || !combatant || !token) {
-        console.groupEnd();
+        Log.groupEnd();
         return;
     }
 
@@ -60,13 +61,13 @@ Hooks.on('targetToken', (...args) => {
         combatant,
         (token as TokenPF2e).document
     );
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 Hooks.on('hoverToken', (...args) => {
     const [token, hovered] = args as [token: TokenPF2e, boolean];
-    if (!token.document?.flags[MODULE_NAME]?.master) return;
-    console.group(`${MODULE_NAME} | hoverToken`, ...args);
+    if (!token.document?.flags[PACKAGE_ID]?.master) return;
+    Log.group('hoverToken', ...args);
 
     const tracker = $('[id=combat-tracker ]');
     const minionRow = tracker.find(`.combatant[data-minion-id=${token.id}]`);
@@ -74,5 +75,5 @@ Hooks.on('hoverToken', (...args) => {
     if (hovered) minionRow.addClass('hover');
     else minionRow.removeClass('hover');
 
-    console.groupEnd();
+    Log.groupEnd();
 });

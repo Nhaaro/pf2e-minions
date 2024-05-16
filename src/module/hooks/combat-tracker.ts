@@ -1,5 +1,5 @@
 import { CombatantPF2e } from '@module/encounter/combatant.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { EncounterTrackerPF2e } from '@module/apps/sidebar/encounter-tracker.js';
 import { EncounterPF2e } from '@module/encounter/document.js';
 import { TEMPLATES } from '../../scripts/register-templates.ts';
@@ -11,6 +11,7 @@ import {
     htmlQueryAll,
     localizeList,
 } from 'src/system/src/util/index.ts';
+import { Log } from '~module/logger.ts';
 
 Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
     const [document, $html, data] = args as [
@@ -19,15 +20,15 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
         data: CombatTrackerData
     ];
     if (!document.viewed || !canvas.ready) return;
-    console.group(`${MODULE_NAME} | renderEncounterTrackerPF2e`, ...args);
+    Log.group('renderEncounterTrackerPF2e', ...args);
 
     //TODO: simplify things, use game.combats.viewed
     for (const combat of document.combats) {
         for (const combatant of combat.combatants) {
-            const minionsUuid = (combatant.actor?.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+            const minionsUuid = (combatant.actor?.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
             if (!minionsUuid.length) continue;
 
-            console.group(`${MODULE_NAME} | combatant`, combatant, combat);
+            Log.group('combatant', combatant, combat);
             const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id="${combatant.id}"]`);
             const masterRow = $masterRow[0];
 
@@ -164,14 +165,14 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             try {
                 activateListeners($html);
             } catch (error) {
-                console.error(`${MODULE_NAME} | renderEncounterTrackerPF2e | listeners`, error);
+                Log.error('renderEncounterTrackerPF2e | listeners', error);
             }
 
-            console.groupEnd();
+            Log.groupEnd();
         }
     }
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 function combatantAndTokenDoc(document: CombatantPF2e | TokenDocumentPF2e): {

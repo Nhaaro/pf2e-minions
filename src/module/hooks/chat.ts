@@ -2,21 +2,22 @@ import { ActorPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
 import { ChatMessagePF2e } from '@module/chat-message/document.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { TEMPLATES } from '../../scripts/register-templates.ts';
 import { htmlClosest, sluggify } from '../../system/src/util/index.ts';
 import { createAction, dispatch } from 'utils/socket/actions.ts';
+import { Log } from '~module/logger.ts';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
-    if (message.getFlag(MODULE_NAME, 'type') !== 'minions-card' || !$html[0]) return;
-    console.group(`${MODULE_NAME} | renderChatMessage`, ...args);
+    if (message.getFlag(PACKAGE_ID, 'type') !== 'minions-card' || !$html[0]) return;
+    Log.group('renderChatMessage', ...args);
 
     const html = $html[0];
 
-    console.debug(MODULE_NAME, 'finding rows...');
+    Log.debug('finding rows...');
     html.querySelectorAll<HTMLLIElement>('.minion-row').forEach(element => {
-        console.group('Attaching listeners', element);
+        Log.group('Attaching listeners', element);
         /** Highlight the minion's corresponding token on the canvas */
         element.addEventListener('mouseenter', hoverHandler);
         /** Remove the token highlight */
@@ -40,7 +41,7 @@ Hooks.on('renderChatMessage', async (...args) => {
             const minionToken = canvas.tokens.get(minionId);
             !minionToken?.controlled && minionToken?.control({ releaseOthers: !nativeEvent.shiftKey });
         });
-        console.groupEnd();
+        Log.groupEnd();
     });
 
     async function hoverHandler(this: HTMLLIElement, nativeEvent: MouseEvent | PointerEvent) {
@@ -75,13 +76,13 @@ Hooks.on('renderChatMessage', async (...args) => {
         }
     }
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 export const updateMinionsCardAction = createAction(
     'updateMinionsCard',
     (payload: { nativeEvent: MouseEvent; messageId: string; minionUuid?: string }) => {
-        console.info(MODULE_NAME, 'updateMinionsCard', payload);
+        Log.info('updateMinionsCard', payload);
         return {
             payload: {
                 ...payload,
@@ -94,7 +95,7 @@ export const updateMinionsCardAction = createAction(
     async payload => {
         const message = game.messages.get(payload.messageId);
         if (!message) {
-            console.error(MODULE_NAME, `message ${payload.messageId} not found, unable to update`);
+            Log.error(`message ${payload.messageId} not found, unable to update`);
             return;
         }
         const $html = await message.getHTML();
@@ -122,12 +123,12 @@ export const updateMinionsCardAction = createAction(
         const item = await fromUuid<SpellPF2e | AbilityItemPF2e>(minionRow.dataset.itemUuid || '');
         if (!masterToken?.actor || !masterToken?.isOwner) return;
         if (!minionToken) {
-            console.error(`${MODULE_NAME} | No minion found`, minionRow.dataset);
+            Log.error('No minion found', minionRow.dataset);
             return;
         }
 
         const actionOverrides = (action: AbilityItemPF2e) => {
-            const translation = `${MODULE_NAME}.Actions.${sluggify(action.name, { camel: 'bactrian' })}`;
+            const translation = `${PACKAGE_ID}.Actions.${sluggify(action.name, { camel: 'bactrian' })}`;
             return {
                 img: minionToken.document.texture.src,
                 flags,
@@ -148,7 +149,7 @@ export const updateMinionsCardAction = createAction(
                 },
             };
         };
-        const flags = { [MODULE_NAME]: { minionId, masterId, sourceId, type: 'command-card' } };
+        const flags = { [PACKAGE_ID]: { minionId, masterId, sourceId, type: 'command-card' } };
 
         let action = masterToken.actor.itemTypes.action.find(
             action => action.sourceId === actionAnchor.dataset.sourceUuid
@@ -186,7 +187,7 @@ export const updateMinionsCardAction = createAction(
         }
 
         actionsWrapper?.remove();
-        await minionToken.document.setFlag(MODULE_NAME, 'commanded', true);
+        await minionToken.document.setFlag(PACKAGE_ID, 'commanded', true);
         await message?.update({ content: content.outerHTML });
     }
 );

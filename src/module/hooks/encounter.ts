@@ -1,45 +1,46 @@
 import { CombatantPF2e, EncounterPF2e } from '@module/encounter/index.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { TEMPLATES } from '../../scripts/register-templates.ts';
 import { TokenPF2e } from '@module/canvas/index.js';
 import { ItemPF2e } from '@item/index.js';
 import { transformTraits } from '../utils.ts';
 import { ItemTrait } from '@item/base/data/system.js';
+import { Log } from '~module/logger.ts';
 
 Hooks.on('pf2e.startTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
-    if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
-    console.group(`${MODULE_NAME} | pf2e.startTurn`, ...args);
+    if (!combatant.actor?.getFlag(PACKAGE_ID, 'minions')) return;
+    Log.group('pf2e.startTurn', ...args);
 
-    const minionsUuid = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+    const minionsUuid = (combatant.actor.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     if (minionsUuid.length > 0) await createMinionsCard(combatant, minionsUuid);
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 Hooks.on('pf2e.endTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
-    if (!combatant.actor?.getFlag(MODULE_NAME, 'minions')) return;
-    console.group(`${MODULE_NAME} | pf2e.endTurn`, ...args);
+    if (!combatant.actor?.getFlag(PACKAGE_ID, 'minions')) return;
+    Log.group('pf2e.endTurn', ...args);
 
-    const minionsUuid = (combatant.actor.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+    const minionsUuid = (combatant.actor.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     for (const uuid of minionsUuid) {
         const [, sceneId, , id] = uuid.split('.');
         if (sceneId !== combatant.sceneId) return;
 
         const minionToken = canvas.tokens.get(id);
         if (!minionToken) {
-            console.error(`${MODULE_NAME} | No minion found`, uuid);
+            Log.error('No minion found', uuid);
             return;
         }
 
-        const flags = minionToken.document.flags[MODULE_NAME];
+        const flags = minionToken.document.flags[PACKAGE_ID];
         if (flags?.type === 'sustained' && !flags.commanded) {
             await createNotSustainedCard(combatant, minionToken);
             await window?.warpgate?.dismiss(minionToken.id);
         }
     }
 
-    console.groupEnd();
+    Log.groupEnd();
 });
 
 export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[]): Promise<Maybe<ChatMessage>> {
@@ -54,14 +55,14 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
             const minion = canvas.tokens.get(id);
             if (!minion) return;
 
-            await minion.document.unsetFlag(MODULE_NAME, 'commanded');
+            await minion.document.unsetFlag(PACKAGE_ID, 'commanded');
 
             return {
                 uuid: uuid,
                 name: minion.document.name,
                 img: minion.document.texture.src,
-                type: minion.document.flags[MODULE_NAME].type,
-                item: minion.document.flags[MODULE_NAME].item,
+                type: minion.document.flags[PACKAGE_ID].type,
+                item: minion.document.flags[PACKAGE_ID].item,
             };
         })
     );
@@ -75,7 +76,7 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
         content,
         type: CONST.CHAT_MESSAGE_TYPES.OTHER,
         flags: {
-            [MODULE_NAME]: {
+            [PACKAGE_ID]: {
                 type: 'minions-card',
                 master: token.uuid,
                 minions,
@@ -92,14 +93,14 @@ async function createNotSustainedCard(combatant: CombatantPF2e, minionToken: Tok
     if (!combatant.token?.actor) return null;
     const { token: masterToken } = combatant;
 
-    let item = await fromUuid<ItemPF2e>(minionToken.document.getFlag(MODULE_NAME, 'item') as string);
+    let item = await fromUuid<ItemPF2e>(minionToken.document.getFlag(PACKAGE_ID, 'item') as string);
     if (!item) {
-        console.error(`${MODULE_NAME} | No item found`, minionToken.document);
+        Log.error('No item found', minionToken.document);
         return;
     }
 
     item.system.traits.value;
-    const template = TEMPLATES[MODULE_NAME].chat.card.notSustained;
+    const template = TEMPLATES[PACKAGE_ID].chat.card.notSustained;
     const templateData = {
         master: masterToken.actorId,
         actor: minionToken.actor,
@@ -107,14 +108,14 @@ async function createNotSustainedCard(combatant: CombatantPF2e, minionToken: Tok
         item: {
             id: item.id,
             img: item.img,
-            name: game.i18n.format(`${MODULE_NAME}.Actions.NotSustained.Title`, { name: item.name }),
-            description: game.i18n.format(`${MODULE_NAME}.Actions.NotSustained.Description`),
+            name: game.i18n.format(`${PACKAGE_ID}.Actions.NotSustained.Title`, { name: item.name }),
+            description: game.i18n.format(`${PACKAGE_ID}.Actions.NotSustained.Description`),
         },
         data: {
             traits: minionToken.actor?.system.traits?.value
                 ? transformTraits(minionToken.actor.system.traits.value as ItemTrait[])
                 : [],
-            properties: [game.i18n.format(`${MODULE_NAME}.Minions`, { name: masterToken.name }), item.name],
+            properties: [game.i18n.format(`${PACKAGE_ID}.Minions`, { name: masterToken.name }), item.name],
         },
     };
     const chatData: Partial<foundry.documents.ChatMessageSource> = {
@@ -124,7 +125,7 @@ async function createNotSustainedCard(combatant: CombatantPF2e, minionToken: Tok
             pf2e: {
                 origin: item.getOriginData(),
             },
-            [MODULE_NAME]: {
+            [PACKAGE_ID]: {
                 type: 'not-sustained-card',
                 masterId: masterToken.actor?.id,
                 minionId: minionToken.id,

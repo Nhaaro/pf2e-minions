@@ -1,16 +1,17 @@
-import { MODULE_NAME } from '../constants.ts';
+import { PACKAGE_ID } from '~constants';
+import { Log } from '~module/logger.ts';
 
 const moduleTemplates = {
-    [MODULE_NAME]: {
-        minions: `modules/${MODULE_NAME}/templates/minions.hbs`,
+    [PACKAGE_ID]: {
+        minions: `modules/${PACKAGE_ID}/templates/minions.hbs`,
         sidebar: {
             combatTracker: {
-                minions: `modules/${MODULE_NAME}/templates/sidebar/combat-tracker/minions.hbs`,
+                minions: `modules/${PACKAGE_ID}/templates/sidebar/combat-tracker/minions.hbs`,
             },
         },
         chat: {
             card: {
-                notSustained: `modules/${MODULE_NAME}/templates/chat/not-sustained-card.hbs`,
+                notSustained: `modules/${PACKAGE_ID}/templates/chat/not-sustained-card.hbs`,
             },
         },
     },
@@ -51,6 +52,7 @@ export function registerTemplates(): void {
             const newPath = path.concat(key);
             if (typeof value === 'string') {
                 yield value;
+                Log.always('Retrieved and compiled template', value);
             } else if (typeof value === 'object') {
                 yield* flattenObject(value as typeof obj, newPath);
             }
@@ -58,6 +60,5 @@ export function registerTemplates(): void {
     }
 
     const flattenedTemplates = [...flattenObject(moduleTemplates)];
-    console.debug(`${MODULE_NAME} | loadTemplates`, flattenedTemplates);
     loadTemplates(flattenedTemplates);
 }

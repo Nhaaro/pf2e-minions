@@ -1,4 +1,5 @@
-import { MODULE_NAME, SOCKET_NAME } from '../constants.ts';
+import { SOCKET_NAME } from '../constants.ts';
+import { Log } from './logger.ts';
 
 declare global {
     interface Module {
@@ -10,15 +11,15 @@ export const handlers = (globalThis.pf2eMinions.handlers ??= new Map<string, Fun
 export type SocketData = ReturnType<(typeof handlers)['values']>['return'];
 
 export const setupSocket = () => {
-    console.debug(`${MODULE_NAME} | setup socket`);
+    Log.debug('setup socket');
     game.socket.on(SOCKET_NAME, async (data, userId) => {
         const handler = handlers.get(data.type);
         if (handler) {
             handler(data.payload);
         } else {
-            console.groupCollapsed(`${MODULE_NAME}::${data.type}`, userId);
-            console.log(data.payload);
-            console.groupEnd();
+            Log.groupCollapsed(`${data.type}::`, userId);
+            Log.always(data.payload);
+            Log.groupEnd();
         }
     });
 };

@@ -1,7 +1,8 @@
 import { ActorSourcePF2e } from '@actor/data/index.js';
 import { ActorPF2e } from '@actor/index.js';
-import { MODULE_NAME } from '../../constants.ts';
+import { PACKAGE_ID } from '../../constants.ts';
 import { isFamiliarData, isFamiliarDocument } from '../utils.ts';
+import { Log } from '~module/logger.ts';
 
 Hooks.on('preUpdateActor', async (...args) => {
     const [document, changes] = args as [
@@ -11,46 +12,46 @@ Hooks.on('preUpdateActor', async (...args) => {
         userId: string
     ];
     if (!(isFamiliarDocument(document) && isFamiliarData(document, changes))) return;
-    console.group(`${MODULE_NAME} | preUpdateActor`, ...args);
+    Log.group('preUpdateActor', ...args);
 
     if (!changes.system?.master?.id) {
-        console.info(`${MODULE_NAME} | No master change, skipping...`);
-        console.groupEnd();
+        Log.info('No master change, skipping...');
+        Log.groupEnd();
         return;
     }
 
-    const updates = mergeObject(changes, { prototypeToken: { flags: { [MODULE_NAME]: {} } } });
-    const tokenFlags = updates.prototypeToken.flags[MODULE_NAME] as Record<string, unknown>;
-    console.debug(`${MODULE_NAME} | tokenFlags`, document.prototypeToken?.flags[MODULE_NAME], tokenFlags);
+    const updates = mergeObject(changes, { prototypeToken: { flags: { [PACKAGE_ID]: {} } } });
+    const tokenFlags = updates.prototypeToken.flags[PACKAGE_ID] as Record<string, unknown>;
+    Log.debug('tokenFlags', document.prototypeToken?.flags[PACKAGE_ID], tokenFlags);
     tokenFlags.type ??= 'familiar';
 
     const newMaster = game.actors.get(changes.system.master.id);
     if (newMaster) {
-        console.group(`${MODULE_NAME} | Adding new master data`);
+        Log.group('Adding new master data');
         tokenFlags.master = newMaster.id;
 
-        const minionsUuid = (newMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        const minionsUuid = (newMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(async token => {
-            console.debug(`${MODULE_NAME} | Cascading new master changes`, token.document.uuid, token.document);
-            await token.document.setFlag(MODULE_NAME, 'master', newMaster.id);
+            Log.debug('Cascading new master changes', token.document.uuid, token.document);
+            await token.document.setFlag(PACKAGE_ID, 'master', newMaster.id);
             if (!minionsUuid.find(uuid => uuid === token.document.uuid))
-                await newMaster.setFlag(MODULE_NAME, 'minions', [...minionsUuid, token.document.uuid]);
+                await newMaster.setFlag(PACKAGE_ID, 'minions', [...minionsUuid, token.document.uuid]);
         });
-        console.groupEnd();
+        Log.groupEnd();
     }
     const oldMaster = game.actors.get(document.system.master.id || '');
     if (oldMaster) {
-        console.group(`${MODULE_NAME} | Removing old master data`);
-        const minionsUuid = (oldMaster.getFlag(MODULE_NAME, 'minions') as string[]) ?? [];
+        Log.group('Removing old master data');
+        const minionsUuid = (oldMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(async token => {
-            console.debug(`${MODULE_NAME} | Cascading old master changes`, token.document.uuid, token.document);
+            Log.debug('Cascading old master changes', token.document.uuid, token.document);
             await oldMaster.setFlag(
-                MODULE_NAME,
+                PACKAGE_ID,
                 'minions',
                 minionsUuid.filter(uuid => uuid != token.document.uuid)
             );
         });
-        console.groupEnd();
+        Log.groupEnd();
     }
-    console.groupEnd();
+    Log.groupEnd();
 });
