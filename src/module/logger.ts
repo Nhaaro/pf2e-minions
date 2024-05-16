@@ -69,9 +69,11 @@ export const Log: Record<keyof typeof VERBOSITY_LEVEL_MAP, (...args: any[]) => v
 } = {} as any;
 function generate_console_aliases() {
     try {
-        Log.group = console.group.bind(Log.group, Logger.prefix());
-        Log.groupCollapsed = console.groupCollapsed.bind(Log.groupCollapsed, Logger.prefix());
-        Log.groupEnd = console.groupEnd.bind(Log.groupEnd);
+        Log.group = Logger.enabled(VERBOSITY.INFO) ? console.group.bind(Log.group, Logger.prefix()) : () => {};
+        Log.groupCollapsed = Logger.enabled(VERBOSITY.INFO)
+            ? console.groupCollapsed.bind(Log.groupCollapsed, Logger.prefix())
+            : () => {};
+        Log.groupEnd = Logger.enabled(VERBOSITY.INFO) ? console.groupEnd.bind(Log.groupEnd) : () => {};
 
         for (const key in VERBOSITY_LEVEL_MAP) {
             const verbosity = VERBOSITY_LEVEL_MAP[key as keyof typeof VERBOSITY_LEVEL_MAP];
