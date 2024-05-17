@@ -36,20 +36,6 @@
                     <span class="resource">{{this.resource}}</span>
                 </div>
             {{/if}}
-
-            <div class="token-initiative">
-                {{#if this.hasRolled}}
-                    <span class="initiative">{{this.initiative}}</span>
-                {{else if this.owner}}
-                    <a
-                        class="combatant-control roll"
-                        aria-label="{{localize 'COMBAT.InitiativeRoll'}}"
-                        role="button"
-                        data-tooltip="COMBAT.InitiativeRoll"
-                        data-control="rollInitiative"
-                    ></a>
-                {{/if}}
-            </div>
         </li>
     {{/each}}
 </ul>
