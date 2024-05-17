@@ -70,7 +70,7 @@ Hooks.on('fs-preSummon', async (...args) => {
         actorFlags.rank = item.rank;
         actorFlags.spellDC = master.attributes.spellDC;
 
-        if (item.system.duration.value.includes('sustain')) tokenFlags.type = 'sustained';
+        if (item.system.duration.sustained) tokenFlags.type = 'sustained';
 
         const actorTraits = updates.actor.system?.traits?.value;
         if (actorTraits && !(['minion', 'eidolon'] as CreatureTrait[]).some(trait => actorTraits.includes(trait))) {
@@ -125,7 +125,7 @@ async function updateSpellDC(document: ConditionPF2e, change?: DeepPartial<Condi
 
     if (
         document.rules.find(rule =>
-            (rule as FlatModifierRuleElement).selector.find(selector => ['all', 'spell-dc'].includes(selector))
+            (rule as FlatModifierRuleElement).selector?.find(selector => ['all', 'spell-dc'].includes(selector))
         ) && change
             ? change?.system?.value?.value
             : true
