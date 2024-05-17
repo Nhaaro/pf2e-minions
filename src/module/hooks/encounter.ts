@@ -10,7 +10,8 @@ import { Log } from '~module/logger.ts';
 Hooks.on('pf2e.startTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
     if (!combatant.actor?.getFlag(PACKAGE_ID, 'minions')) return;
-    Log.group('pf2e.startTurn', ...args);
+    Log.group('pf2e.startTurn', combatant.name);
+    Log.info('~args~', args);
 
     const minionsUuid = (combatant.actor.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     if (minionsUuid.length > 0) await createMinionsCard(combatant, minionsUuid);
@@ -20,7 +21,8 @@ Hooks.on('pf2e.startTurn', async (...args) => {
 Hooks.on('pf2e.endTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
     if (!combatant.actor?.getFlag(PACKAGE_ID, 'minions')) return;
-    Log.group('pf2e.endTurn', ...args);
+    Log.group('pf2e.endTurn', combatant.name);
+    Log.info('~args~', args);
 
     const minionsUuid = (combatant.actor.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     for (const uuid of minionsUuid) {
@@ -68,6 +70,7 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
     );
     minions = minions.filter(m => m);
     if (minions.length === 0) return null;
+    Log.debug(minions);
 
     const content = await renderTemplate(TEMPLATES['pf2e-minions'].minions, { minions, master: token.uuid });
     const messageSource: Partial<foundry.documents.ChatMessageSource> = {

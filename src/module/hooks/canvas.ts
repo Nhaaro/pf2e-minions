@@ -9,7 +9,8 @@ import { Log } from '~module/logger.ts';
 Hooks.on('createToken', async (...args) => {
     const [document] = args as [document: TokenDocumentPF2e, options: object, userId: string];
     if (!document.flags[PACKAGE_ID]?.master) return;
-    Log.group('createToken', ...args);
+    Log.group('createToken');
+    Log.info('~args~', args);
 
     const master = game.actors.get(document.getFlag(PACKAGE_ID, 'master') as string);
     if (master) {
@@ -24,7 +25,8 @@ Hooks.on('createToken', async (...args) => {
 Hooks.on('deleteToken', async (...args) => {
     const [document] = args as [document: TokenDocumentPF2e, options: object, userId: string];
     if (!document.flags[PACKAGE_ID]?.master) return;
-    Log.group('deleteToken', ...args);
+    Log.group('deleteToken');
+    Log.info('~args~', args);
 
     const master = game.actors.get(document.getFlag(PACKAGE_ID, 'master') as string);
     if (master) {
@@ -47,7 +49,8 @@ Hooks.on('deleteToken', async (...args) => {
 Hooks.on('targetToken', (...args) => {
     const [, token] = args;
     if (!token.document?.flags[PACKAGE_ID]?.master) return;
-    Log.group('targetToken', ...args);
+    Log.groupCollapsed('targetToken', token.name);
+    Log.info('~args~', args);
 
     const master = game.actors.get(token.document.getFlag(PACKAGE_ID, 'master') as string);
     const combatant = game.combat?.combatants.get(master?.combatant?.id || '');
@@ -67,7 +70,8 @@ Hooks.on('targetToken', (...args) => {
 Hooks.on('hoverToken', (...args) => {
     const [token, hovered] = args as [token: TokenPF2e, boolean];
     if (!token.document?.flags[PACKAGE_ID]?.master) return;
-    Log.group('hoverToken', ...args);
+    Log.groupCollapsed('hoverToken', token.name);
+    Log.info('~args~', args);
 
     const tracker = $('[id=combat-tracker ]');
     const minionRow = tracker.find(`.combatant[data-minion-id=${token.id}]`);

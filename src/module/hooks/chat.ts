@@ -11,13 +11,15 @@ import { Log } from '~module/logger.ts';
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
     if (message.getFlag(PACKAGE_ID, 'type') !== 'minions-card' || !$html[0]) return;
-    Log.group('renderChatMessage', ...args);
+    Log.group('renderChatMessage');
+    Log.info('~args~', args);
 
     const html = $html[0];
 
     Log.debug('finding rows...');
     html.querySelectorAll<HTMLLIElement>('.minion-row').forEach(element => {
-        Log.group('Attaching listeners', element);
+        Log.groupCollapsed('Attaching listeners', element.dataset.minionUuid);
+        Log.info(element);
         /** Highlight the minion's corresponding token on the canvas */
         element.addEventListener('mouseenter', hoverHandler);
         /** Remove the token highlight */

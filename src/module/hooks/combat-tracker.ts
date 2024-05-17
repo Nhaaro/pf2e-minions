@@ -20,15 +20,19 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
         data: CombatTrackerData
     ];
     if (!document.viewed || !canvas.ready) return;
-    Log.group('renderEncounterTrackerPF2e', ...args);
+    Log.group('renderEncounterTrackerPF2e');
+    Log.info('~args~', args);
 
     //TODO: simplify things, use game.combats.viewed
     for (const combat of document.combats) {
+        Log.group('combat', combat.sheet.element);
+        Log.info(combat);
         for (const combatant of combat.combatants) {
             const minionsUuid = (combatant.actor?.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
             if (!minionsUuid.length) continue;
 
-            Log.group('combatant', combatant, combat);
+            Log.group('combatant', combatant.name);
+            Log.info(combatant);
             const $masterRow = $html.find<HTMLLIElement>(`li.combatant[data-combatant-id="${combatant.id}"]`);
             const masterRow = $masterRow[0];
 
@@ -170,6 +174,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
 
             Log.groupEnd();
         }
+        Log.groupEnd();
     }
 
     Log.groupEnd();
