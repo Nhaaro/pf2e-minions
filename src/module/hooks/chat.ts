@@ -132,7 +132,10 @@ export const updateMinionsCardAction = createAction(
         const item = await fromUuid<SpellPF2e | AbilityItemPF2e>(minionRow.dataset.itemUuid || '');
         if (!masterToken?.actor || !masterToken?.isOwner) return;
         if (!minionToken) {
-            Log.error('No minion found', minionRow.dataset);
+            Log.error('No minion found, removing element...', minionRow.dataset, minionRow);
+            Log.debug('Verify the minions list is correct', masterToken.document.actor?.getFlag(PACKAGE_ID, 'minions'));
+            minionRow.remove();
+            await message?.update({ content: content.outerHTML });
             return;
         }
 
