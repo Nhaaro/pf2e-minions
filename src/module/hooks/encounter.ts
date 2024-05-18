@@ -27,12 +27,12 @@ Hooks.on('pf2e.endTurn', async (...args) => {
     const minionsUuid = (combatant.actor.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
     for (const uuid of minionsUuid) {
         const [, sceneId, , id] = uuid.split('.');
-        if (sceneId !== combatant.sceneId) return;
+        if (sceneId !== combatant.sceneId) continue;
 
         const minionToken = canvas.tokens.get(id);
         if (!minionToken) {
             Log.error('No minion found', uuid);
-            return;
+            continue;
         }
 
         const flags = minionToken.document.flags[PACKAGE_ID];

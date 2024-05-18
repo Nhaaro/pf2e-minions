@@ -204,12 +204,12 @@ export function refreshTargetDisplay(
 
     for (const tracker of htmlQueryAll(document, '#combat, #combat-popout')) {
         const combatantRow = htmlQuery(tracker, `li.combatant[data-combatant-id="${combatant?.id ?? null}"]`);
-        if (!combatantRow) return;
+        if (!combatantRow) continue;
         const minionRow = htmlQuery(
             combatantRow.parentElement,
             `ul[data-combatant-id="${combatant?.id ?? null}"] li.combatant[data-minion-id="${minionDoc.id}"]`
         );
-        if (!minionRow) return;
+        if (!minionRow) continue;
 
         const usersTargetting = game.users.filter(u => Array.from(u.targets).some(t => t.document === minionDoc));
 
