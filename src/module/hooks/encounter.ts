@@ -61,6 +61,7 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
 
             return {
                 uuid: uuid,
+                id: id,
                 name: minion.document.name,
                 img: minion.document.texture.src,
                 type: minion.document.flags[PACKAGE_ID].type,
@@ -83,6 +84,8 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
                 type: 'minions-card',
                 master: token.uuid,
                 minions,
+                combatant: combatant.uuid,
+                round: game.combat?.current.round,
             },
         },
     };

@@ -10,8 +10,15 @@ import { Log } from '~module/logger.ts';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
-    if (message.getFlag(PACKAGE_ID, 'type') !== 'minions-card' || !$html[0]) return;
-    Log.group('renderChatMessage');
+    const messageFlags = message.flags[PACKAGE_ID];
+    if (messageFlags?.type !== 'minions-card' || !$html[0] || !game.combats.viewed?.started) return;
+
+    if (
+        (messageFlags?.minions as Record<string, any>[]).every(minion => minion.commanded) ||
+        messageFlags?.round !== game.combat?.current.round
+    )
+        Log.groupCollapsed('renderChatMessage', messageFlags.type, messageFlags.combatant, messageFlags.round);
+    else Log.group('renderChatMessage', messageFlags.type, messageFlags.combatant, messageFlags.round);
     Log.info('~args~', args);
 
     const html = $html[0];
@@ -190,6 +197,14 @@ export const updateMinionsCardAction = createAction(
 
         actionsWrapper?.remove();
         await minionToken.document.setFlag(PACKAGE_ID, 'commanded', true);
+        await message.setFlag(
+            PACKAGE_ID,
+            'minions',
+            (message.getFlag(PACKAGE_ID, 'minions') as Record<string, any>[]).map(minion => {
+                if (minion.id === minionId) minion.commanded = true;
+                return minion;
+            })
+        );
         await message?.update({ content: content.outerHTML });
     }
 );

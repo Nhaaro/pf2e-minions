@@ -12,7 +12,7 @@ Hooks.on('preUpdateActor', async (...args) => {
         userId: string
     ];
     if (!(isFamiliarDocument(document) && isFamiliarData(document, changes))) return;
-    Log.group('preUpdateActor', document.name);
+    Log.groupCollapsed('preUpdateActor', document.name, document.type);
     Log.info('~args~', args);
 
     if (!changes.system?.master?.id) {
@@ -28,12 +28,12 @@ Hooks.on('preUpdateActor', async (...args) => {
 
     const newMaster = game.actors.get(changes.system.master.id);
     if (newMaster) {
-        Log.group('Adding new master data');
+        Log.groupCollapsed('Adding new master data');
         tokenFlags.master = newMaster.id;
 
         const minionsUuid = (newMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(async token => {
-            Log.debug('Cascading new master changes', token.document.uuid, token.document);
+            Log.info('Cascading new master changes', token.document.uuid, token.document);
             await token.document.setFlag(PACKAGE_ID, 'master', newMaster.id);
             if (!minionsUuid.find(uuid => uuid === token.document.uuid))
                 await newMaster.setFlag(PACKAGE_ID, 'minions', [...minionsUuid, token.document.uuid]);
@@ -42,10 +42,10 @@ Hooks.on('preUpdateActor', async (...args) => {
     }
     const oldMaster = game.actors.get(document.system.master.id || '');
     if (oldMaster) {
-        Log.group('Removing old master data');
+        Log.groupCollapsed('Removing old master data');
         const minionsUuid = (oldMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
         document.getActiveTokens().forEach(async token => {
-            Log.debug('Cascading old master changes', token.document.uuid, token.document);
+            Log.info('Cascading old master changes', token.document.uuid, token.document);
             await oldMaster.setFlag(
                 PACKAGE_ID,
                 'minions',
