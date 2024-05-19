@@ -10,15 +10,15 @@ import { Log } from '~module/logger.ts';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args;
-    const messageFlags = message.flags[PACKAGE_ID];
-    if (messageFlags?.type !== 'minions-card' || !$html[0] || !game.combats.viewed?.started) return;
+    const moduleFlags = message.flags[PACKAGE_ID];
+    if (moduleFlags?.type !== 'minions-card' || !$html[0] || !game.combats.viewed?.started) return;
 
     if (
-        (messageFlags?.minions as Record<string, any>[]).every(minion => minion.commanded) ||
-        messageFlags?.round !== game.combat?.current.round
+        (moduleFlags?.minions as Record<string, any>[]).every(minion => minion.commanded) ||
+        moduleFlags?.round !== game.combat?.current.round
     )
-        Log.groupCollapsed('renderChatMessage', messageFlags.type, messageFlags.combatant, messageFlags.round);
-    else Log.group('renderChatMessage', messageFlags.type, messageFlags.combatant, messageFlags.round);
+        Log.groupCollapsed('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
+    else Log.group('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
     Log.info('~args~', args);
 
     const html = $html[0];
