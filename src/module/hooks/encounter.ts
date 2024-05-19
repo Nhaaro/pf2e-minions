@@ -6,6 +6,8 @@ import { ItemPF2e } from '@item/index.js';
 import { transformTraits } from '../utils.ts';
 import { ItemTrait } from '@item/base/data/system.js';
 import { Log } from '~module/logger.ts';
+import { dispatch } from 'utils/socket/actions.ts';
+import { clearMinionsCardAction } from './chat.ts';
 
 Hooks.on('pf2e.startTurn', async (...args) => {
     const [combatant] = args as [combatant: CombatantPF2e, encounter: EncounterPF2e, userId: string];
@@ -41,6 +43,12 @@ Hooks.on('pf2e.endTurn', async (...args) => {
             await window?.warpgate?.dismiss(minionToken.id);
         }
     }
+
+    dispatch(
+        clearMinionsCardAction({
+            messageId: combatant.getFlag(PACKAGE_ID, 'minions-card') as string,
+        })
+    );
 
     Log.groupEnd();
 });

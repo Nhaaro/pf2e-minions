@@ -7,9 +7,14 @@ import { TEMPLATES } from '../../scripts/register-templates.ts';
 import { htmlClosest, sluggify } from '../../system/src/util/index.ts';
 import { createAction, dispatch } from 'utils/socket/actions.ts';
 import { Log } from '~module/logger.ts';
+import { ChatMessageSchema } from 'types/foundry/common/documents/chat-message';
 
 Hooks.on('renderChatMessage', async (...args) => {
-    const [message, $html] = args;
+    const [message, $html] = args as [
+        message: ChatMessagePF2e,
+        JQuery<HTMLElement>,
+        SourceFromSchema<ChatMessageSchema>
+    ];
     const moduleFlags = message.flags[PACKAGE_ID];
     if (moduleFlags?.type !== 'minions-card' || !$html[0] || !game.combats.viewed?.started) return;
 
@@ -39,7 +44,7 @@ Hooks.on('renderChatMessage', async (...args) => {
             if (!element.dataset.minionUuid) return;
 
             dispatch(
-                updateMinionsCardAction({
+                commandMinionAction({
                     nativeEvent,
                     messageId: message.id,
                     minionUuid: element.dataset.minionUuid,
@@ -85,13 +90,16 @@ Hooks.on('renderChatMessage', async (...args) => {
         }
     }
 
+    Log.info('Storing message ref', message.id);
+    message.token?.combatant?.setFlag(PACKAGE_ID, 'minions-card', message.id);
+
     Log.groupEnd();
 });
 
-export const updateMinionsCardAction = createAction(
-    'updateMinionsCard',
+export const commandMinionAction = createAction(
+    'commandMinion',
     (payload: { nativeEvent: MouseEvent; messageId: string; minionUuid?: string }) => {
-        Log.info('updateMinionsCard', payload);
+        Log.info('commandMinion', payload);
         return {
             payload: {
                 ...payload,
@@ -209,5 +217,60 @@ export const updateMinionsCardAction = createAction(
             })
         );
         await message?.update({ content: content.outerHTML });
+    }
+);
+
+export const clearMinionsCardAction = createAction(
+    'clearMinionsCard',
+    (payload: { messageId: string; minionUuid?: string }) => {
+        Log.info('clearMinionsCard', payload);
+        return {
+            payload: {
+                ...payload,
+            },
+        };
+    },
+    async payload => {
+        const message = game.messages.get(payload.messageId);
+        if (!message) {
+            Log.error(`message ${payload.messageId} not found, unable to update`);
+            return;
+        }
+        const $html = await message.getHTML();
+
+        const html = $html[0];
+        const content = html.querySelector<HTMLUListElement>(`[data-master-uuid]`);
+
+        const minionRows = content?.querySelectorAll<HTMLLIElement>(`[data-minion-uuid]`);
+        if (!canvas.ready || !content?.dataset.masterUuid || !minionRows) return;
+
+        const [, , , masterId] = content.dataset.masterUuid.split('.');
+        const masterToken = canvas.tokens.get(masterId);
+        if (!masterToken?.actor || !masterToken?.isOwner) return;
+
+        for (const minionRow of minionRows) {
+            const actionsWrapper = minionRow?.querySelector<HTMLDivElement>('.actions-wrapper');
+            const actionAnchor = actionsWrapper?.querySelector<HTMLAnchorElement>('[data-source-uuid]');
+            if (!minionRow?.dataset.minionUuid || !actionsWrapper || !actionAnchor?.dataset.sourceUuid) continue;
+
+            const [, , , minionId] = minionRow.dataset.minionUuid.split('.');
+            const minionToken = canvas.tokens.get(minionId);
+
+            if (!minionToken) {
+                Log.error('No minion found, removing element...', minionRow.dataset, minionRow);
+                Log.debug(
+                    'Verify the minions list is correct',
+                    masterToken.document.actor?.getFlag(PACKAGE_ID, 'minions')
+                );
+                minionRow.remove();
+                await message?.update({ content: content.outerHTML });
+                return;
+            }
+
+            actionsWrapper?.remove();
+        }
+
+        await message?.update({ content: content.outerHTML });
+        message.token?.combatant?.unsetFlag(PACKAGE_ID, 'minions-card');
     }
 );
