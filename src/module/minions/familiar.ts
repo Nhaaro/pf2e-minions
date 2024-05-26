@@ -26,32 +26,37 @@ Hooks.on('preUpdateActor', async (...args) => {
     Log.debug('tokenFlags', document.prototypeToken?.flags[PACKAGE_ID], tokenFlags);
     tokenFlags.type ??= 'familiar';
 
+    const oldMaster = game.actors.get(document.system.master.id || '');
+    if (oldMaster) {
+        Log.groupCollapsed('Removing old master data');
+        let minionsUuid = (oldMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
+        Log.debug(minionsUuid);
+        Promise.all(
+            document.getActiveTokens().flatMap(token => {
+                Log.info('Cascading old master changes', token.document.uuid, token.document);
+                minionsUuid = minionsUuid.filter(uuid => uuid != token.document.uuid);
+                return oldMaster.setFlag(PACKAGE_ID, 'minions', minionsUuid);
+            })
+        );
+        Log.groupEnd();
+    }
     const newMaster = game.actors.get(changes.system.master.id);
     if (newMaster) {
         Log.groupCollapsed('Adding new master data');
         tokenFlags.master = newMaster.id;
 
         const minionsUuid = (newMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
-        document.getActiveTokens().forEach(async token => {
-            Log.info('Cascading new master changes', token.document.uuid, token.document);
-            await token.document.setFlag(PACKAGE_ID, 'master', newMaster.id);
-            if (!minionsUuid.find(uuid => uuid === token.document.uuid))
-                await newMaster.setFlag(PACKAGE_ID, 'minions', [...minionsUuid, token.document.uuid]);
-        });
-        Log.groupEnd();
-    }
-    const oldMaster = game.actors.get(document.system.master.id || '');
-    if (oldMaster) {
-        Log.groupCollapsed('Removing old master data');
-        const minionsUuid = (oldMaster.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
-        document.getActiveTokens().forEach(async token => {
-            Log.info('Cascading old master changes', token.document.uuid, token.document);
-            await oldMaster.setFlag(
-                PACKAGE_ID,
-                'minions',
-                minionsUuid.filter(uuid => uuid != token.document.uuid)
-            );
-        });
+        Log.debug(minionsUuid);
+        Promise.all(
+            document.getActiveTokens().flatMap(token => {
+                const promises = [];
+                Log.info('Cascading new master changes', token.document.uuid, token.document);
+                promises.push(token.document.setFlag(PACKAGE_ID, 'master', newMaster.id));
+                if (!minionsUuid.find(uuid => uuid === token.document.uuid)) minionsUuid.push(token.document.uuid);
+                promises.push(newMaster.setFlag(PACKAGE_ID, 'minions', minionsUuid));
+                return promises;
+            })
+        );
         Log.groupEnd();
     }
     Log.groupEnd();
