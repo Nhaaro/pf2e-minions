@@ -15,7 +15,7 @@ Hooks.on('preUpdateActor', async (...args) => {
     if (!(document.isOfType('character') && isCharacterData(document, changes) && document.class?.name === 'Eidolon'))
         return;
     Log.group('preUpdateActor', document.name, document.ancestry?.name);
-    Log.info('~args~', args);
+    Log.args(args);
 
     if (!PF2eToolbelt.getShareConfig(changes)?.master) {
         Log.info('No master change, skipping...');

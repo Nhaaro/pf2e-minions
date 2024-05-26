@@ -23,7 +23,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
 
     if ($html[0].checkVisibility()) Log.group('renderEncounterTrackerPF2e', document.id);
     else Log.groupCollapsed('renderEncounterTrackerPF2e', document.id);
-    Log.info('~args~', args);
+    Log.args(args);
 
     //TODO: simplify things, use game.combats.viewed
     for (const combat of document.combats) {

@@ -13,7 +13,7 @@ Hooks.on('preUpdateActor', async (...args) => {
     ];
     if (!(isFamiliarDocument(document) && isFamiliarData(document, changes))) return;
     Log.groupCollapsed('preUpdateActor', document.name, document.type);
-    Log.info('~args~', args);
+    Log.args(args);
 
     if (!changes.system?.master?.id) {
         Log.info('No master change, skipping...');

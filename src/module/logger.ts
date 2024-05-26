@@ -66,6 +66,7 @@ export const Log: Record<keyof typeof VERBOSITY_LEVEL_MAP, (...args: any[]) => v
     group: Console['group'];
     groupCollapsed: Console['groupCollapsed'];
     groupEnd: Console['groupEnd'];
+    args: Console['debug'];
 } = {} as any;
 function generate_console_aliases() {
     try {
@@ -74,6 +75,13 @@ function generate_console_aliases() {
             ? console.groupCollapsed.bind(Log.groupCollapsed, Logger.prefix())
             : () => {};
         Log.groupEnd = Logger.enabled(VERBOSITY.INFO) ? console.groupEnd.bind(Log.groupEnd) : () => {};
+
+        Log.args = Logger.enabled(VERBOSITY.DEBUG)
+            ? console.debug.bind(
+                  Log.args,
+                  Logger.prefix(chalk.cyan, base => `(${base})`)
+              )
+            : () => {};
 
         for (const key in VERBOSITY_LEVEL_MAP) {
             const verbosity = VERBOSITY_LEVEL_MAP[key as keyof typeof VERBOSITY_LEVEL_MAP];
@@ -129,8 +137,8 @@ export class Logger {
     /**
      * Returns the common prefix for all log messages, optionally colored to signal the severity
      */
-    static prefix(color = chalk.blue) {
-        return `${color(this.prefixBase)} |`;
+    static prefix(color = chalk.blue, cb?: (string: string) => string) {
+        return cb ? cb(color(this.prefixBase)) : `${color(this.prefixBase)} |`;
     }
 
     static init(force = false) {

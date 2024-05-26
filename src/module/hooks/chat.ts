@@ -24,7 +24,7 @@ Hooks.on('renderChatMessage', async (...args) => {
     )
         Log.groupCollapsed('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
     else Log.group('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
-    Log.info('~args~', args);
+    Log.args(args);
 
     const html = $html[0];
 
