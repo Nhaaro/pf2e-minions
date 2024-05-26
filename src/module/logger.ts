@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk, { ChalkInstance } from 'chalk';
 import { MODULE_NAME, PACKAGE_ID } from '~constants';
 
 export enum VERBOSITY {
@@ -36,10 +36,12 @@ export function generateChoices(): { [key: number]: string } {
     return choices;
 }
 
-const VERBOSITY_CONSOLE_MAP: { [key: number]: [Console, keyof Console] } = {
+const VERBOSITY_CONSOLE_MAP: {
+    [key: number]: [Console, keyof Console] | [Console, keyof Console, ChalkInstance];
+} = {
     [VERBOSITY.ZERO]: [console, 'debug'],
     [VERBOSITY.TRACE]: [console, 'debug'],
-    [VERBOSITY.DEBUG]: [console, 'debug'],
+    [VERBOSITY.DEBUG]: [console, 'debug', chalk.green],
     [VERBOSITY.INFO]: [console, 'info'],
     [VERBOSITY.WARNING]: [console, 'warn'],
     [VERBOSITY.ERROR]: [console, 'error'],
@@ -181,9 +183,9 @@ export class Logger {
         try {
             if (!this.enabled(verbosity)) return null;
 
-            const [consoleObj, method] = VERBOSITY_CONSOLE_MAP[fn_verbosity];
+            const [consoleObj, method, color] = VERBOSITY_CONSOLE_MAP[fn_verbosity];
             const consoleMethod = consoleObj[method] as (...args: any[]) => void;
-            return consoleMethod.bind(consoleObj, this.prefix());
+            return consoleMethod.bind(consoleObj, this.prefix(color));
         } catch (error) {
             throw new Error(`${Logger.prefix()} | fn | ${error}`);
         }
