@@ -45,13 +45,13 @@ export const isItemData = (docSource: CompendiumSource): docSource is ItemSource
 
 // Actors
 export function isCharacterDocument(document: ActorPF2e): document is CharacterPF2e {
-    return document.type === 'familiar';
+    return document.type === 'character';
 }
 export function isCharacterData(
     document: ActorPF2e,
     _data: DeepPartial<ActorSourcePF2e>
 ): _data is DeepPartial<CharacterSource> {
-    return document.type === 'familiar';
+    return document.type === 'character';
 }
 export function isFamiliarDocument(document: ActorPF2e): document is FamiliarPF2e {
     return document.type === 'familiar';
