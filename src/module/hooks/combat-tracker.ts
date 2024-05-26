@@ -96,7 +96,10 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                 })
             );
             minions = minions.filter(m => m);
-            if (minions.length === 0) continue;
+            if (minions.length === 0) {
+                Log.groupEnd();
+                continue;
+            }
             const rows = await renderTemplate(TEMPLATES['pf2e-minions'].sidebar.combatTracker.minions, {
                 minions,
                 master: combatant.id,
@@ -130,6 +133,10 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
             // const minionRows = htmlQueryAll(tracker, "li.combatant");
             for (const minionRow of $minionsList.find<HTMLLIElement>('li.combatant')) {
                 const minion = canvas.tokens.get(minionRow.dataset.minionId!);
+                if (!minion) {
+                    debugger;
+                    continue;
+                }
 
                 // Create section for list of users targeting a combatant's token
                 const nameHeader = htmlQuery(minionRow, '.token-name h4')!;
@@ -153,7 +160,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                         controlIcon.classList.add('fa-signal-stream');
 
                         // Add a `targetCombatant` control after `toggleDefeated`
-                        if (game.scenes.viewed?.tokens.has(minion?.id ?? '')) {
+                        if (game.scenes.viewed?.tokens.has(minion.id ?? '')) {
                             const targetControl = createHTMLElement('a', {
                                 classes: ['combatant-control'],
                                 dataset: { control: 'toggleTarget', tooltip: 'COMBAT.ToggleTargeting' },
@@ -166,7 +173,7 @@ Hooks.on('renderEncounterTrackerPF2e', async (...args) => {
                     }
                 }
 
-                refreshTargetDisplay.call(document, combatant, minion?.document!);
+                refreshTargetDisplay.call(document, combatant, minion.document);
             }
 
             try {
