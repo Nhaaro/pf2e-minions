@@ -23,7 +23,7 @@ Hooks.on('preUpdateActor', async (...args) => {
         return;
     }
 
-    const updates = mergeObject(changes, { prototypeToken: { flags: { [PACKAGE_ID]: {} } } });
+    const updates = foundry.utils.mergeObject(changes, { prototypeToken: { flags: { [PACKAGE_ID]: {} } } });
     const tokenFlags = updates.prototypeToken.flags[PACKAGE_ID] as Record<string, unknown>;
     Log.debug('tokenFlags', document.prototypeToken?.flags[PACKAGE_ID], tokenFlags);
     tokenFlags.type ??= 'eidolon';

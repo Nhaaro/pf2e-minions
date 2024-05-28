@@ -1,6 +1,6 @@
 import { ActorSourcePF2e, CharacterSource, FamiliarSource } from '@actor/data/index.js';
 import { ActorPF2e, CharacterPF2e, FamiliarPF2e } from '@actor/index.js';
-import { AbilityItemSource, ConditionSource, ItemSourcePF2e, SpellSource } from '@item/base/data/index.js';
+import { AbilitySource, ConditionSource, ItemSourcePF2e, SpellSource } from '@item/base/data/index.js';
 import { ItemTrait } from '@item/base/data/system';
 import { AbilityItemPF2e, ConditionPF2e, ItemPF2e, SpellPF2e } from '@item/index.js';
 
@@ -70,7 +70,7 @@ export function isActionDocument(document: ItemPF2e): document is AbilityItemPF2
 export function isActionData(
     document: ItemPF2e,
     _data: DeepPartial<ItemSourcePF2e>
-): _data is DeepPartial<AbilityItemSource> {
+): _data is DeepPartial<AbilitySource> {
     return document.type === 'action';
 }
 export function isConditionDocument(document: ItemPF2e): document is ConditionPF2e {
