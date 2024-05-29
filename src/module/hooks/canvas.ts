@@ -15,9 +15,12 @@ Hooks.on('createToken', async (...args) => {
     const master = game.actors.get(document.getFlag(PACKAGE_ID, 'master') as string);
     if (master) {
         const minionsUuid = (master.getFlag(PACKAGE_ID, 'minions') as string[]) ?? [];
-        Log.debug('Adding minion to master', document.uuid, document);
-        if (!minionsUuid.find(uuid => uuid === document.uuid))
+        if (minionsUuid.find(uuid => uuid === document.uuid)) Log.info('Minion already in array, skipping...');
+        else {
+            Log.info(`Adding minion (${document.name}) to master (${master.name})`, document.uuid, document);
             await master.setFlag(PACKAGE_ID, 'minions', [...minionsUuid, document.uuid]);
+            Log.info(master.getFlag(PACKAGE_ID, 'minions'));
+        }
     }
     Log.groupEnd();
 });

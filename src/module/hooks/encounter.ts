@@ -107,7 +107,7 @@ async function createNotSustainedCard(combatant: CombatantPF2e, minionToken: Tok
     if (!combatant.token?.actor) return null;
     const { token: masterToken } = combatant;
 
-    let item = await fromUuid<ItemPF2e>(minionToken.document.getFlag(PACKAGE_ID, 'item') as string);
+    const item = await fromUuid<ItemPF2e>(minionToken.document.getFlag(PACKAGE_ID, 'item') as string);
     if (!item) {
         Log.error('No item found', minionToken.document);
         return;
