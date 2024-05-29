@@ -20,10 +20,10 @@ Hooks.on('renderChatMessage', async (...args) => {
 
     if (
         (moduleFlags?.minions as Record<string, any>[]).every(minion => minion.commanded) ||
-        moduleFlags?.round !== game.combat?.current.round
+        (moduleFlags?.encounter as CombatHistoryData).round !== game.combat?.current.round
     )
-        Log.groupCollapsed('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
-    else Log.group('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.round);
+        Log.groupCollapsed('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.encounter);
+    else Log.group('renderChatMessage', moduleFlags.type, moduleFlags.combatant, moduleFlags.encounter);
     Log.args(args);
 
     const html = $html[0];
@@ -92,6 +92,17 @@ Hooks.on('renderChatMessage', async (...args) => {
 
     Log.info('Storing message ref', message.id);
     message.token?.combatant?.setFlag(PACKAGE_ID, 'minions-card', message.id);
+
+    Log.debug('encounter::moduleFlags|game.combat.current', moduleFlags.encounter, game.combat?.current);
+    if (
+        foundry.utils.objectsEqual(
+            moduleFlags.encounter as CombatHistoryData,
+            game.combat?.current as CombatHistoryData
+        )
+    ) {
+        Log.info('Sticking message');
+        html.classList.add('sticky');
+    }
 
     Log.groupEnd();
 });

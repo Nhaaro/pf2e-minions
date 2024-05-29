@@ -2,6 +2,14 @@
     border: unset;
     box-shadow: unset;
 }
+
+/* Stick minions-card for current combat round */
+.chat-message.sticky:has(> .message-content ul.combatant-minions) {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
 ul.combatant-minions {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;

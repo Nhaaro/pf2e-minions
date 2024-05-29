@@ -93,7 +93,7 @@ export async function createMinionsCard(combatant: CombatantPF2e, uuids: string[
                 master: token.uuid,
                 minions,
                 combatant: combatant.uuid,
-                round: game.combat?.current.round,
+                encounter: foundry.utils.deepClone(combatant.encounter?.current),
             },
         },
     };
