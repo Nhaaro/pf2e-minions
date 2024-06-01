@@ -1,13 +1,13 @@
 import { ActorPF2e } from '@actor/index.js';
 import { AbilityItemPF2e, SpellPF2e } from '@item/index.js';
-import { ChatMessagePF2e } from '@module/chat-message/document.js';
+import { ChatMessagePF2e } from '@module/chat-message/index.js';
 import { ScenePF2e, TokenDocumentPF2e } from '@scene/index.js';
+import { ChatMessageSchema } from 'types/foundry/common/documents/chat-message';
+import { createAction, dispatch } from 'utils/socket/actions.ts';
+import { Log } from '~module/logger.ts';
 import { PACKAGE_ID } from '../../constants.ts';
 import { TEMPLATES } from '../../scripts/register-templates.ts';
 import { htmlClosest, sluggify } from '../../system/src/util/index.ts';
-import { createAction, dispatch } from 'utils/socket/actions.ts';
-import { Log } from '~module/logger.ts';
-import { ChatMessageSchema } from 'types/foundry/common/documents/chat-message';
 
 Hooks.on('renderChatMessage', async (...args) => {
     const [message, $html] = args as [
@@ -158,64 +158,83 @@ export const commandMinionAction = createAction(
             return;
         }
 
-        const actionOverrides = (action: AbilityItemPF2e) => {
+        const overrideAction = <T extends AbilityItemPF2e>(action: T): T => {
             const translation = `${PACKAGE_ID}.Actions.${sluggify(action.name, { camel: 'bactrian' })}`;
-            return {
+            return action.clone({
                 img: minionToken.document.texture.src,
                 flags,
                 name: game.i18n.format(`${translation}.Title`, { name: minionToken.name }),
-                system: {
-                    description: {
-                        value: game.i18n.format(`${translation}.Description`, {
-                            spellCompendium: (item?.name && `@UUID[${item.uuid}]`) || 'that spell',
-                            spellName: item?.name || 'the spell',
-                            duration:
-                                (item &&
-                                    'duration' in item.system &&
-                                    item.system.duration.value.includes('sustain') &&
-                                    item.system.duration.value.replace('sustained up to ', '')) ||
-                                '10 minutes',
-                        }),
-                    },
-                },
-            };
+            });
         };
-        const flags = { [PACKAGE_ID]: { minionId, masterId, sourceId, type: 'command-card' } };
+        const replaceDescription = (action: AbilityItemPF2e, value: string) => {
+            const translation = `${PACKAGE_ID}.Actions.${sluggify(action.name, { camel: 'bactrian' })}`;
+            const replacementString = game.i18n.format(`${translation}.Description`, {
+                spellCompendium: (item?.name && `@UUID[${item.uuid}]`) || 'that spell',
+                spellName: item?.name || 'the spell',
+                duration:
+                    (item &&
+                        'duration' in item.system &&
+                        item.system.duration.value.includes('sustain') &&
+                        item.system.duration.value.replace('sustained up to ', '')) ||
+                    '10 minutes',
+            });
 
-        let action = masterToken.actor.itemTypes.action.find(
-            action => action.sourceId === actionAnchor.dataset.sourceUuid
-        );
-        if (action) {
-            action = action.clone(actionOverrides(action));
-            action.toMessage();
-        } else {
-            action = (await fromUuid<AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e> | null>>>(
+            const regex = /^(.*?)<div class="addendum">/s;
+            const match = value.match(regex);
+
+            let newContent;
+            if (match) {
+                newContent = value.replace(regex, replacementString + '\n<hr />\n' + '<div class="addendum">');
+            } else {
+                newContent = replacementString;
+            }
+            return newContent;
+        };
+        const flags = {
+            [PACKAGE_ID]: { minionId, masterId, sourceId, type: 'command-card' },
+        };
+
+        const action =
+            masterToken.actor.itemTypes.action.find(action => action.sourceId === actionAnchor.dataset.sourceUuid) ||
+            (await fromUuid<AbilityItemPF2e<ActorPF2e<TokenDocumentPF2e<ScenePF2e> | null>>>(
                 actionAnchor.dataset.sourceUuid
-            ))!;
-            action = action.clone(actionOverrides(action));
+            ));
+        if (!action) return Log.error('action not found');
 
-            const template = (TEMPLATES.pf2e.chat.card as unknown as Record<string, string>)[sluggify(action.type)];
-            const templateData = {
-                actor: masterToken.actor,
-                item: action,
-                data: await action.getChatData(),
-            };
-            const chatData: Partial<foundry.documents.ChatMessageSource> = {
-                speaker: ChatMessage.getSpeaker({ token: masterToken.document, actor: masterToken.actor }),
+        const actionChatData = await action.getChatData();
+
+        // Basic template rendering data
+        const template = (TEMPLATES.pf2e.chat.card as unknown as Record<string, string>)[sluggify(action.type)];
+        const templateData = {
+            actor: masterToken.actor,
+            tokenId: masterToken.id,
+            item: overrideAction(action),
+            // TODO: find a better way to replace the original description; action.clone removes the addenda
+            data: foundry.utils.mergeObject(actionChatData, {
+                description: {
+                    value: replaceDescription(action, actionChatData.description.value),
+                },
+            }),
+        };
+        const chatData: DeepPartial<foundry.documents.ChatMessageSource> = ChatMessage.applyRollMode(
+            {
+                type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+                speaker: ChatMessage.getSpeaker({
+                    actor: masterToken.actor,
+                    token: masterToken.actor.getActiveTokens(false, true).at(0),
+                }),
+                content: await renderTemplate(template, templateData),
                 flags: {
                     ...flags,
-                    pf2e: {
-                        origin: action.getOriginData(),
-                    },
+                    pf2e: { origin: action.getOriginData() },
                 },
-                type: CONST.CHAT_MESSAGE_TYPES.OTHER,
-            };
-            chatData.content = await renderTemplate(template, templateData);
-            const isNPCEvent = !masterToken.actor?.hasPlayerOwner;
-            if (isNPCEvent) chatData.whisper = ChatMessage.getWhisperRecipients('GM').map(u => u.id);
+            },
+            'publicroll'
+        );
+        const isNPCEvent = !masterToken.actor?.hasPlayerOwner;
+        if (isNPCEvent) chatData.whisper = ChatMessage.getWhisperRecipients('GM').map(u => u.id);
 
-            ChatMessage.create(chatData);
-        }
+        ChatMessage.create(chatData);
 
         actionsWrapper?.remove();
         await minionToken.document.setFlag(PACKAGE_ID, 'commanded', true);
