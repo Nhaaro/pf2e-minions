@@ -120,7 +120,7 @@ export const commandMinionAction = createAction(
             },
         };
     },
-    async payload => {
+    async (payload, userId) => {
         const message = game.messages.get(payload.messageId);
         if (!message) {
             Log.error(`message ${payload.messageId} not found, unable to update`);
@@ -218,6 +218,7 @@ export const commandMinionAction = createAction(
         };
         const chatData: DeepPartial<foundry.documents.ChatMessageSource> = ChatMessage.applyRollMode(
             {
+                user: userId,
                 type: CONST.CHAT_MESSAGE_TYPES.OTHER,
                 speaker: ChatMessage.getSpeaker({
                     actor: masterToken.actor,

@@ -15,7 +15,7 @@ export const setupSocket = () => {
     game.socket.on(SOCKET_NAME, async (data, userId) => {
         const handler = handlers.get(data.type);
         if (handler) {
-            handler(data.payload);
+            handler(data.payload, userId);
         } else {
             Log.groupCollapsed(`${data.type}::`, userId);
             Log.always(data.payload);

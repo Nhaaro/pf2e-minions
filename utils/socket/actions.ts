@@ -26,7 +26,7 @@ export interface SimpleActionCreator<T extends string = string, P = void, Args e
 export function createAction<PA extends PrepareAction<any>, T extends string = string>(
     type: T,
     prepareAction: PA,
-    handler?: (payload: ReturnType<PA>['payload']) => void
+    handler?: (payload: ReturnType<PA>['payload'], userId: string | undefined) => void
 ): SimpleActionCreator<T, ReturnType<PA>['payload'], Parameters<PA>> {
     function actionCreator(...args: Parameters<PA>) {
         let prepared = prepareAction(...args);
